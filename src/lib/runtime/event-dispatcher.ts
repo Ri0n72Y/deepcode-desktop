@@ -4,6 +4,7 @@ import { usePermissionStore } from "../../stores/permission-store";
 import { useProcessStore } from "../../stores/process-store";
 import { useRuntimeStore } from "../../stores/runtime-store";
 import { useSessionStore } from "../../stores/session-store";
+import { useSkillStore } from "../../stores/skill-store";
 import type { HeadlessEvent, SessionMessage } from "./types";
 
 export function dispatchRuntimeEvent(event: HeadlessEvent): void {
@@ -17,6 +18,8 @@ export function dispatchRuntimeEvent(event: HeadlessEvent): void {
       if (Array.isArray(event.sessions)) {
         useSessionStore.getState().replaceList(event.sessions);
       }
+      useRuntimeStore.getState().setSessionStatus(event.status ?? null);
+      useRuntimeStore.getState().setTokenTelemetry(event.tokenTelemetry ?? null);
       break;
     case "loadSession":
       useChatStore.getState().replaceSession(event.sessionId ?? null, event.messages ?? []);
@@ -24,10 +27,23 @@ export function dispatchRuntimeEvent(event: HeadlessEvent): void {
       if (Array.isArray(event.sessions)) {
         useSessionStore.getState().replaceList(event.sessions);
       }
+      useRuntimeStore.getState().setSessionStatus(event.status ?? null);
+      useRuntimeStore.getState().setTokenTelemetry(event.tokenTelemetry ?? null);
+      if (event.processes !== undefined) {
+        useProcessStore.getState().setProcesses(event.processes);
+      }
+      if (Array.isArray(event.askPermissions)) {
+        usePermissionStore.getState().setPending(event.askPermissions);
+      }
       break;
     case "showSessionsList":
       if (Array.isArray(event.sessions)) {
         useSessionStore.getState().replaceList(event.sessions);
+      }
+      break;
+    case "skillsList":
+      if (Array.isArray(event.skills)) {
+        useSkillStore.getState().setAvailable(event.skills);
       }
       break;
     case "userMessage":
@@ -37,13 +53,18 @@ export function dispatchRuntimeEvent(event: HeadlessEvent): void {
       break;
     case "appendMessage":
       if (isSessionMessage(event.message)) {
-        useChatStore.getState().appendMessage(event.message);
+        useChatStore.getState().appendMessage({ ...event.message, shouldConnect: Boolean(event.shouldConnect) });
       }
       break;
     case "loading":
       useRuntimeStore.getState().setLoading(Boolean(event.value));
+      if (typeof event.status === "string" || event.status === null) {
+        useRuntimeStore.getState().setSessionStatus(event.status ?? null);
+      }
       break;
     case "sessionStatus":
+      useRuntimeStore.getState().setSessionStatus(event.status ?? null);
+      useRuntimeStore.getState().setTokenTelemetry(event.tokenTelemetry ?? null);
       if (event.processes !== undefined) {
         useProcessStore.getState().setProcesses(event.processes);
       }
@@ -66,6 +87,7 @@ export function dispatchRuntimeEvent(event: HeadlessEvent): void {
       break;
     case "shutdown":
       useRuntimeStore.getState().setStatus("offline");
+      useRuntimeStore.getState().setLoading(false);
       break;
     case "error":
       useRuntimeStore.getState().setRuntimeError(event.error ?? "Unknown runtime error");
