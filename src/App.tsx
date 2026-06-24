@@ -1,7 +1,10 @@
-import "./App.css";
+import { RuntimeProvider } from "./app/providers";
+import AppShell from "./components/layout/AppShell";
 
-function App() {
-  return <main />;
+export default function App() {
+  return (
+    <RuntimeProvider>
+      <AppShell />
+    </RuntimeProvider>
+  );
 }
-
-export default App;
