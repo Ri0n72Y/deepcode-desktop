@@ -1,3 +1,4 @@
+import "./App.css";
 import { RuntimeProvider } from "./app/providers";
 import AppShell from "./components/layout/AppShell";
 
