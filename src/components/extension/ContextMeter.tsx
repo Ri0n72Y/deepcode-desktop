@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useRuntimeStore } from "../../stores/runtime-store";
 
 export default function ContextMeter() {
@@ -5,7 +6,7 @@ export default function ContextMeter() {
   const percent = telemetry?.activeTokens && telemetry?.maxTokens ? Math.round((telemetry.activeTokens / telemetry.maxTokens) * 100) : 0;
   return (
     <div className="context-meter" aria-label={`Context usage ${percent}%`}>
-      <div className="context-meter-ring" style={{ "--context-percent": `${percent}%` } as React.CSSProperties} />
+      <div className="context-meter-ring" style={{ "--context-percent": `${percent}%` } as CSSProperties} />
       <div className="context-meter-tooltip">
         <div className="context-tooltip-title">Context Window</div>
         <div className="context-tooltip-summary">{percent}% used</div>
