@@ -15,9 +15,46 @@ export type RuntimeStatus = {
 export type SessionSummary = {
   id: string;
   summary: string;
-  status?: string;
+  status?: string | null;
   createTime?: string;
   updateTime?: string;
+};
+
+export type SkillInfo = {
+  name: string;
+  path: string;
+  description?: string;
+  isLoaded?: boolean;
+};
+
+export type PermissionScope =
+  | "read-in-cwd"
+  | "read-out-cwd"
+  | "write-in-cwd"
+  | "write-out-cwd"
+  | "delete-in-cwd"
+  | "delete-out-cwd"
+  | "query-git-log"
+  | "mutate-git-log"
+  | "network"
+  | "mcp";
+
+export type PermissionRequest = {
+  toolCallId?: string;
+  name?: string;
+  command?: string;
+  description?: string;
+  scope?: PermissionScope | string;
+  [key: string]: unknown;
+};
+
+export type TokenTelemetry = {
+  model?: string;
+  thinkingEnabled?: boolean;
+  reasoningEffort?: string;
+  activeTokens?: number;
+  maxTokens?: number;
+  usage?: Record<string, unknown>;
 };
 
 export type SessionMessage = {
@@ -25,9 +62,11 @@ export type SessionMessage = {
   sessionId?: string;
   role: "system" | "user" | "assistant" | "tool";
   content: string | null;
+  html?: string;
   visible?: boolean;
   createTime?: string;
   updateTime?: string;
+  shouldConnect?: boolean;
   meta?: Record<string, unknown>;
 };
 
@@ -54,13 +93,6 @@ export type ModelConfig = {
   webSearchTool?: string | null;
 };
 
-export type PermissionRequest = {
-  toolCallId?: string;
-  scope?: string;
-  description?: string;
-  [key: string]: unknown;
-};
-
 export type ProcessEntry = {
   startTime?: string;
   command?: string;
@@ -79,6 +111,7 @@ export type HeadlessEvent = {
   sequence?: number;
   timestamp?: string;
   sessionId?: string;
+  summary?: string;
   sessions?: SessionSummary[];
   messages?: SessionMessage[];
   message?: SessionMessage;
@@ -87,6 +120,8 @@ export type HeadlessEvent = {
   status?: string | null;
   processes?: ProcessMap;
   askPermissions?: PermissionRequest[];
+  tokenTelemetry?: TokenTelemetry | null;
+  skills?: SkillInfo[];
   config?: ModelConfig;
   progress?: Record<string, unknown>;
   pid?: number;
@@ -97,6 +132,7 @@ export type HeadlessEvent = {
 
 export type PromptInput = {
   text: string;
+  skills?: SkillInfo[];
   imageUrls?: string[];
 };
 
@@ -105,6 +141,12 @@ export type RuntimeClient = {
   startRuntime(projectRoot?: string): Promise<RuntimeStatus>;
   stopRuntime(): Promise<void>;
   ready(): Promise<void>;
+  requestSkills(): Promise<void>;
+  createNewSession(): Promise<void>;
+  selectSession(sessionId: string): Promise<void>;
+  backToList(): Promise<void>;
   prompt(input: PromptInput): Promise<{ requestId: string }>;
   interrupt(): Promise<void>;
+  openFile(filePath: string, line?: number): Promise<void>;
+  copyText(text: string): Promise<void>;
 };
