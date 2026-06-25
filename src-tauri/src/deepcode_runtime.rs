@@ -32,7 +32,7 @@ impl Default for RuntimeStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RuntimeConnectionStatus {
     Offline,
