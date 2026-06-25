@@ -2,6 +2,7 @@ import { Button, Textarea } from "@headlessui/react";
 import { PaperAirplaneIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
+import { cn } from "../../lib/utils/cn";
 import { useRuntimeStore } from "../../stores/runtime-store";
 import { useSkillStore } from "../../stores/skill-store";
 import ContextMeter from "./ContextMeter";
@@ -68,7 +69,7 @@ export default function Composer() {
             </div>
           </div>
           <Button className="send-button" onClick={() => void sendOrStop()} type="button" aria-label={loading ? "Stop generation" : "Send prompt"}>
-            {loading ? <StopIcon id="stopIcon" /> : <PaperAirplaneIcon id="sendIcon" className={text.trim() ? "" : "empty"} />}
+            {loading ? <StopIcon id="stopIcon" /> : <PaperAirplaneIcon id="sendIcon" className={cn(!text.trim() && "empty")} />}
           </Button>
         </div>
       </div>
