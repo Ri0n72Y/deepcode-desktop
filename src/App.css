@@ -50,14 +50,7 @@
 html, body, #root { margin: 0; height: 100%; min-height: 100%; }
 button, textarea, input { font: inherit; }
 button { color: inherit; }
-body {
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--vscode-foreground);
-  font-family: var(--vscode-font-family);
-  font-size: var(--vscode-font-size);
-}
-
+body { overflow: hidden; background: var(--bg); color: var(--vscode-foreground); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); }
 .app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
 .header-container { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 16px; background: var(--panel); border-bottom: 1px solid var(--border-color); flex-shrink: 0; position: relative; }
 .header-left { position: relative; min-width: 0; flex: 1; }
@@ -69,7 +62,6 @@ body {
 .session-title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .session-selector-icon, .header-new-icon { width: 16px; height: 16px; fill: currentColor; transition: transform 0.2s; flex-shrink: 0; }
 .header-new-btn { border: none; border-radius: 4px; cursor: pointer; background: none; display: flex; align-items: center; justify-content: center; padding: 6px; flex-shrink: 0; }
-
 .session-dropdown { position: absolute; top: calc(100% + 8px); left: 0; right: 0; background: var(--vscode-dropdown-background); border: 1px solid var(--border-color); border-radius: 4px; max-height: 400px; z-index: 20; display: none; box-shadow: 0 4px 12px var(--shadow); flex-direction: column; }
 .session-dropdown.show { display: flex; }
 .session-search-box { padding: 8px; flex-shrink: 0; }
@@ -85,7 +77,6 @@ body {
 .session-dropdown-summary { flex: 1; min-width: 0; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .session-dropdown-summary mark { background-color: rgba(255, 200, 0, 0.25); color: var(--vscode-editor-foreground); padding: 0 2px; border-radius: 2px; }
 .session-dropdown-time { font-size: 11px; color: var(--muted); }
-
 .chat-container { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
 .messages { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px; display: flex; flex-direction: column; gap: 1px; background: var(--panel); }
 .empty-chat { margin: auto; color: var(--muted); border: 1px dashed var(--border-color); border-radius: 6px; padding: 18px; }
@@ -114,7 +105,6 @@ body {
 .thinking-status { color: var(--muted); font-weight: 400; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .tool-result-details, .update-plan-result { border: 1px solid var(--border-color); border-radius: 6px; background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); padding: 10px; white-space: pre-wrap; }
-
 .composer { position: relative; flex-shrink: 0; background: var(--panel); border-top: 1px solid var(--border-color); padding: 10px 12px 12px; }
 .input-wrap { border: 1px solid var(--border-color); border-radius: 8px; background: var(--vscode-input-background); box-shadow: 0 4px 14px var(--shadow); }
 .tools-line { min-height: 0; }
@@ -131,7 +121,6 @@ body {
 .send-button { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 4px; background: var(--accent-2); color: var(--vscode-button-foreground); cursor: pointer; }
 .send-button svg { width: 16px; height: 16px; }
 #sendIcon.empty { opacity: 0.45; }
-
 .skills-popup { position: absolute; left: 12px; bottom: calc(100% - 6px); width: min(560px, calc(100vw - 24px)); max-height: 320px; display: none; flex-direction: column; background: var(--vscode-dropdown-background); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 16px var(--shadow); z-index: 30; overflow: hidden; }
 .skills-popup.show { display: flex; }
 .skills-popup-header { padding: 8px 10px; border-bottom: 1px solid var(--border-color); font-weight: 600; }
@@ -141,7 +130,6 @@ body {
 .skills-popup-item:hover, .skills-popup-item.selected { background: var(--vscode-list-hoverBackground); }
 .skills-popup-item-path { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .skills-popup-item-loaded { color: var(--vscode-terminal-ansiGreen); }
-
 .context-meter { position: relative; width: 20px; height: 20px; flex-shrink: 0; }
 .context-meter-ring { width: 20px; height: 20px; border-radius: 50%; background: conic-gradient(var(--accent-2) var(--context-percent, 0%), var(--vscode-editor-background) 0); border: 1px solid var(--border-color); }
 .context-meter-tooltip { position: absolute; bottom: 28px; left: -120px; width: 260px; display: none; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--vscode-dropdown-background); box-shadow: 0 4px 12px var(--shadow); z-index: 40; }
@@ -150,3 +138,15 @@ body {
 .context-tooltip-summary { color: var(--muted); margin: 4px 0 8px; }
 .context-tooltip-row { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); }
 .permission-prompt-host { margin-bottom: 10px; }
+.permission-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: var(--vscode-dropdown-background); box-shadow: 0 4px 14px var(--shadow); }
+.permission-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.permission-title { font-weight: 700; }
+.permission-progress, .permission-description, .permission-question { color: var(--muted); font-size: 12px; }
+.permission-close { border: none; background: transparent; color: var(--muted); cursor: pointer; }
+.permission-tool { font-weight: 600; margin-bottom: 4px; }
+.permission-command { font-family: var(--vscode-editor-font-family); background: var(--vscode-editor-background); border: 1px solid var(--border-color); border-radius: 4px; padding: 6px; margin-bottom: 8px; }
+.permission-scope { display: inline-flex; padding: 2px 6px; border-radius: 999px; background: rgba(255, 200, 0, 0.12); color: #f6d365; margin-bottom: 8px; }
+.permission-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.permission-action { border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px; cursor: pointer; background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground); }
+.permission-action:hover { background: var(--vscode-button-secondaryHoverBackground); }
+.permission-allow { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
