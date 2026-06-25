@@ -4,7 +4,7 @@ import { useRuntimeClient } from "../../app/providers";
 import { useRuntimeStore } from "../../stores/runtime-store";
 import { useSkillStore } from "../../stores/skill-store";
 import ContextMeter from "./ContextMeter";
-import PromptGate from "./PromptGate";
+import PermissionPromptHost from "./PromptGate";
 import SkillsPopup from "./SkillsPopup";
 
 export default function Composer() {
@@ -33,7 +33,7 @@ export default function Composer() {
   return (
     <div className="composer">
       <SkillsPopup open={skillsOpen} />
-      <PromptGate />
+      <PermissionPromptHost />
       <div className="input-wrap">
         <div className="tools-line" />
         <textarea
