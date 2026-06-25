@@ -2,6 +2,7 @@ import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headl
 import { useMemo, useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
 import type { SessionSummary } from "../../lib/runtime/types";
+import { cn } from "../../lib/utils/cn";
 import { useSessionStore } from "../../stores/session-store";
 
 type SessionDropdownProps = {
@@ -27,7 +28,7 @@ export default function SessionDropdown({ open, onClose }: SessionDropdownProps)
 
   return (
     <Combobox value={active} onChange={(session: SessionSummary | null) => void selectSession(session)}>
-      <div className={`session-dropdown ${open ? "show" : ""}`}>
+      <div className={cn("session-dropdown", open && "show")}>
         <div className="session-search-box">
           <ComboboxInput
             className="session-search-input"
@@ -61,7 +62,14 @@ function SessionGroup({ label, sessions, current, query }: SessionGroupProps) {
     <div className="session-dropdown-group">
       <div className="session-dropdown-group-title">{label}</div>
       {sessions.map((session) => (
-        <ComboboxOption className={`session-dropdown-item ${session.id === current ? "active" : ""}`} key={session.id} value={session}>
+        <ComboboxOption
+          className={cn(
+            "session-dropdown-item",
+            session.id === current && "active",
+          )}
+          key={session.id}
+          value={session}
+        >
           <span className="session-dropdown-summary">{highlightText(session.summary || "Untitled", query)}</span>
           <span className="session-dropdown-time">{formatSessionTime(session.updateTime)}</span>
         </ComboboxOption>
