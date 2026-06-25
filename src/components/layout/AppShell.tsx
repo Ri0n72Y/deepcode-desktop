@@ -1,4 +1,4 @@
-import ChatContainer from "../extension/Conversation";
+import ChatContainer from "../extension/ChatContainer";
 import HeaderBar from "../extension/HeaderBar";
 
 export default function AppShell() {
