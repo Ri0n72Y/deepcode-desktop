@@ -1,10 +1,11 @@
-import { PaperAirplaneIcon, StopIcon } from "@heroicons/react/24/solid";
+import { Button } from "@headlessui/react";
+import { PaperAirplaneIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
 import { useRuntimeStore } from "../../stores/runtime-store";
 import { useSkillStore } from "../../stores/skill-store";
 import ContextMeter from "./ContextMeter";
-import PermissionPromptHost from "./PromptGate";
+import PermissionPromptHost from "./PermissionPromptHost";
 import SkillsPopup from "./SkillsPopup";
 
 export default function Composer() {
@@ -51,22 +52,24 @@ export default function Composer() {
         />
         <div className="composer-footer">
           <div className="skills-bar">
-            <button className="skills-button" onClick={() => setSkillsOpen((value) => !value)} type="button">Skills</button>
+            <Button className="skills-button" onClick={() => setSkillsOpen((value) => !value)} type="button">Skills</Button>
             <ContextMeter />
             <div className="skills-tags">
               <div className="skills-tags-inner">
                 {selectedSkills.map((skill) => (
                   <span className="skill-tag" key={skill.name}>
                     <span className="skill-tag-name">{skill.name}</span>
-                    <button className="skill-tag-remove" onClick={() => removeSkill(skill.name)} type="button">×</button>
+                    <Button className="skill-tag-remove" onClick={() => removeSkill(skill.name)} type="button" aria-label={`Remove ${skill.name}`}>
+                      <XMarkIcon className="skill-tag-remove-icon" />
+                    </Button>
                   </span>
                 ))}
               </div>
             </div>
           </div>
-          <button className="send-button" onClick={() => void sendOrStop()} type="button">
+          <Button className="send-button" onClick={() => void sendOrStop()} type="button" aria-label={loading ? "Stop generation" : "Send prompt"}>
             {loading ? <StopIcon id="stopIcon" /> : <PaperAirplaneIcon id="sendIcon" className={text.trim() ? "" : "empty"} />}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
