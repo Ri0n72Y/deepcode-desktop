@@ -1,4 +1,4 @@
-import { Button } from "@headlessui/react";
+import { Button, Textarea } from "@headlessui/react";
 import { PaperAirplaneIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
@@ -37,7 +37,7 @@ export default function Composer() {
       <PermissionPromptHost />
       <div className="input-wrap">
         <div className="tools-line" />
-        <textarea
+        <Textarea
           id="prompt"
           onChange={(event) => setText(event.target.value)}
           onKeyDown={(event) => {
