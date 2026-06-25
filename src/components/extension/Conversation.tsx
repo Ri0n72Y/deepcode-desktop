@@ -4,7 +4,7 @@ import Composer from "./Composer";
 import MessageBubble from "./MessageBubble";
 import ThinkingBubble from "./ThinkingBubble";
 
-export default function Conversation() {
+export default function ChatContainer() {
   const messages = useChatStore((state) => state.messages);
   const loading = useRuntimeStore((state) => state.loading);
 
