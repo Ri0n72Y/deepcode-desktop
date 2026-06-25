@@ -1,4 +1,5 @@
-import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { Button } from "@headlessui/react";
+import { ChevronDownIcon, CommandLineIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
 import { useSessionStore } from "../../stores/session-store";
@@ -14,18 +15,18 @@ export default function HeaderBar() {
   return (
     <header className="header-container">
       <div className="header-left">
-        <button className={`session-selector ${open ? "open" : ""}`} onClick={() => setOpen((value) => !value)} type="button">
-          <span className="session-logo" aria-hidden="true">D</span>
+        <Button className={`session-selector ${open ? "open" : ""}`} onClick={() => setOpen((value) => !value)} type="button">
+          <span className="session-logo" aria-hidden="true"><CommandLineIcon className="session-logo-icon" /></span>
           <span className="session-selector-title">
             <span className="session-title-text">{active?.summary ?? "Deep Code"}</span>
           </span>
           <ChevronDownIcon className="session-selector-icon" />
-        </button>
+        </Button>
         <SessionDropdown open={open} onClose={() => setOpen(false)} />
       </div>
-      <button className="header-new-btn" type="button" onClick={() => void client?.createNewSession()}>
+      <Button className="header-new-btn" title="New Chat" type="button" onClick={() => void client?.createNewSession()}>
         <PlusIcon className="header-new-icon" />
-      </button>
+      </Button>
     </header>
   );
 }
