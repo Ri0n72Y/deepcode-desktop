@@ -1,3 +1,5 @@
+import { Button } from "@headlessui/react";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { useSkillStore } from "../../stores/skill-store";
 
 type SkillsPopupProps = {
@@ -17,11 +19,11 @@ export default function SkillsPopup({ open }: SkillsPopupProps) {
         {available.map((skill) => {
           const isSelected = selected.some((item) => item.name === skill.name);
           return (
-            <button className={`skills-popup-item ${isSelected ? "selected" : ""}`} key={skill.name} onClick={() => toggle(skill)} type="button">
+            <Button className={`skills-popup-item ${isSelected ? "selected" : ""}`} key={skill.name} onClick={() => toggle(skill)} type="button">
               <span className="skills-popup-item-name">{skill.name}</span>
               <span className="skills-popup-item-path">{skill.path}</span>
-              {skill.isLoaded ? <span className="skills-popup-item-loaded">✓</span> : null}
-            </button>
+              {skill.isLoaded || isSelected ? <CheckCircleIcon className="skills-popup-item-loaded" /> : null}
+            </Button>
           );
         })}
       </div>
