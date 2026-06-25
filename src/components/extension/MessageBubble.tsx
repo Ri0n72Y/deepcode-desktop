@@ -2,6 +2,7 @@ import { Button, Disclosure, DisclosureButton, DisclosurePanel } from "@headless
 import { CheckIcon, ChevronRightIcon, ClipboardDocumentIcon, WrenchScrewdriverIcon } from "@heroicons/react/24/outline";
 import { useState, type ReactNode } from "react";
 import type { SessionMessage } from "../../lib/runtime/types";
+import { cn } from "../../lib/utils/cn";
 
 export default function MessageBubble({ message }: { message: SessionMessage }) {
   if (message.role === "user") {
@@ -15,7 +16,10 @@ export default function MessageBubble({ message }: { message: SessionMessage }) 
   const title = message.role === "system" ? "Skills" : "tool";
   return (
     <CollapsibleBubble
-      dotClass={`${message.role === "tool" ? "success" : "system-dot"} ${message.shouldConnect ? "connect-to-prev" : ""}`}
+      dotClass={cn(
+        message.role === "tool" ? "success" : "system-dot",
+        message.shouldConnect && "connect-to-prev",
+      )}
       title={title}
     >
       {message.content}
@@ -35,7 +39,12 @@ function AssistantBubble({ message }: { message: SessionMessage }) {
 
   return (
     <div className="bubble assistant">
-      <span className={`bubble-dot ${message.shouldConnect ? "connect-to-prev" : ""}`} />
+      <span
+        className={cn(
+          "bubble-dot",
+          message.shouldConnect && "connect-to-prev",
+        )}
+      />
       <div className="bubble-normal-content">{content}</div>
       <Button className="bubble-copy-btn" onClick={() => void copyMessage()} type="button" aria-label="Copy assistant message">
         {copied ? <CheckIcon className="bubble-action-icon" /> : <ClipboardDocumentIcon className="bubble-action-icon" />}
@@ -50,13 +59,18 @@ function CollapsibleBubble({ title, dotClass, children }: { title: string; dotCl
       {({ open }) => (
         <>
           <DisclosureButton className="bubble-collapsible-header" aria-label={`Toggle ${title} details`}>
-            <span className={`bubble-dot ${dotClass}`} />
+            <span className={cn("bubble-dot", dotClass)} />
             <span className="bubble-title">
               <span className="bubble-title-text">
                 <WrenchScrewdriverIcon className="bubble-title-icon" />
                 <b>{title}</b>
               </span>
-              <ChevronRightIcon className={`bubble-toggle-icon ${open ? "expanded" : ""}`} />
+              <ChevronRightIcon
+                className={cn(
+                  "bubble-toggle-icon",
+                  open && "expanded",
+                )}
+              />
             </span>
           </DisclosureButton>
           <DisclosurePanel className="bubble-collapsible-content">{children}</DisclosurePanel>
