@@ -2,6 +2,7 @@ import { Button } from "@headlessui/react";
 import { ChevronDownIcon, CommandLineIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
+import { cn } from "../../lib/utils/cn";
 import { useSessionStore } from "../../stores/session-store";
 import SessionDropdown from "./SessionDropdown";
 
@@ -15,7 +16,14 @@ export default function HeaderBar() {
   return (
     <header className="header-container">
       <div className="header-left">
-        <Button className={`session-selector ${open ? "open" : ""}`} onClick={() => setOpen((value) => !value)} type="button">
+        <Button
+          className={cn(
+            "session-selector",
+            open && "open",
+          )}
+          onClick={() => setOpen((value) => !value)}
+          type="button"
+        >
           <span className="session-logo" aria-hidden="true"><CommandLineIcon className="session-logo-icon" /></span>
           <span className="session-selector-title">
             <span className="session-title-text">{active?.summary ?? "Deep Code"}</span>
