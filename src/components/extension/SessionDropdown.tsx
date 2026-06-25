@@ -1,3 +1,4 @@
+import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react";
 import { useMemo, useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
 import type { SessionSummary } from "../../lib/runtime/types";
@@ -12,33 +13,38 @@ export default function SessionDropdown({ open, onClose }: SessionDropdownProps)
   const client = useRuntimeClient();
   const sessions = useSessionStore((state) => state.list);
   const current = useSessionStore((state) => state.current);
+  const active = sessions.find((session) => session.id === current) ?? null;
   const [query, setQuery] = useState("");
   const groups = useMemo(() => groupSessions(sessions, query), [sessions, query]);
   const total = groups.today.length + groups.yesterday.length + groups.pastWeek.length;
 
-  async function selectSession(sessionId: string) {
-    await client?.selectSession(sessionId);
+  async function selectSession(session: SessionSummary | null) {
+    if (!session) return;
+    await client?.selectSession(session.id);
+    setQuery("");
     onClose();
   }
 
   return (
-    <div className={`session-dropdown ${open ? "show" : ""}`}>
-      <div className="session-search-box">
-        <input
-          className="session-search-input"
-          onChange={(event) => setQuery(event.target.value)}
-          onClick={(event) => event.stopPropagation()}
-          placeholder="Search sessions..."
-          value={query}
-        />
+    <Combobox value={active} onChange={(session: SessionSummary | null) => void selectSession(session)}>
+      <div className={`session-dropdown ${open ? "show" : ""}`}>
+        <div className="session-search-box">
+          <ComboboxInput
+            className="session-search-input"
+            displayValue={(session: SessionSummary | null) => query || session?.summary || ""}
+            onChange={(event) => setQuery(event.target.value)}
+            onClick={(event) => event.stopPropagation()}
+            placeholder="Search sessions..."
+          />
+        </div>
+        <ComboboxOptions static className="session-dropdown-list">
+          {total === 0 ? <div className="session-dropdown-empty">{query ? "No sessions found" : "No sessions yet"}</div> : null}
+          <SessionGroup current={current} label="Today" query={query} sessions={groups.today} />
+          <SessionGroup current={current} label="Yesterday" query={query} sessions={groups.yesterday} />
+          <SessionGroup current={current} label="Past Week" query={query} sessions={groups.pastWeek} />
+        </ComboboxOptions>
       </div>
-      <div className="session-dropdown-list">
-        {total === 0 ? <div className="session-dropdown-empty">{query ? "No sessions found" : "No sessions yet"}</div> : null}
-        <SessionGroup current={current} label="Today" query={query} sessions={groups.today} onSelect={selectSession} />
-        <SessionGroup current={current} label="Yesterday" query={query} sessions={groups.yesterday} onSelect={selectSession} />
-        <SessionGroup current={current} label="Past Week" query={query} sessions={groups.pastWeek} onSelect={selectSession} />
-      </div>
-    </div>
+    </Combobox>
   );
 }
 
@@ -47,24 +53,18 @@ type SessionGroupProps = {
   sessions: SessionSummary[];
   current: string | null;
   query: string;
-  onSelect: (sessionId: string) => Promise<void>;
 };
 
-function SessionGroup({ label, sessions, current, query, onSelect }: SessionGroupProps) {
+function SessionGroup({ label, sessions, current, query }: SessionGroupProps) {
   if (sessions.length === 0) return null;
   return (
     <div className="session-dropdown-group">
       <div className="session-dropdown-group-title">{label}</div>
       {sessions.map((session) => (
-        <button
-          className={`session-dropdown-item ${session.id === current ? "active" : ""}`}
-          key={session.id}
-          onClick={() => void onSelect(session.id)}
-          type="button"
-        >
+        <ComboboxOption className={`session-dropdown-item ${session.id === current ? "active" : ""}`} key={session.id} value={session}>
           <span className="session-dropdown-summary">{highlightText(session.summary || "Untitled", query)}</span>
           <span className="session-dropdown-time">{formatSessionTime(session.updateTime)}</span>
-        </button>
+        </ComboboxOption>
       ))}
     </div>
   );
