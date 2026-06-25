@@ -2,7 +2,7 @@ import { useRuntimeClient } from "../../app/providers";
 import { usePermissionStore } from "../../stores/permission-store";
 import { useRuntimeStore } from "../../stores/runtime-store";
 
-export default function PromptGate() {
+export default function PermissionPromptHost() {
   const client = useRuntimeClient();
   const pending = usePermissionStore((state) => state.pending);
   const sessionStatus = useRuntimeStore((state) => state.sessionStatus);
