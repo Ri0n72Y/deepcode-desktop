@@ -1,8 +1,8 @@
 import { Button, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { Bars3Icon, ChevronRightIcon, Cog6ToothIcon, FolderIcon, PlusIcon, QueueListIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import { useRuntimeClient } from "../../app/providers";
 import { loadStaticSession } from "../../lib/deepcode-static/load-static-session";
+import { startStaticChat } from "../../lib/deepcode-static/start-static-chat";
 import type { StaticProjectHistory, StaticSessionSummary } from "../../lib/deepcode-static/types";
 import { useStaticHistoryStore } from "../../stores/static-history-store";
 import { cn } from "../../lib/utils/cn";
@@ -12,14 +12,13 @@ type DeepcodeSidebarProps = {
 };
 
 export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps) {
-  const client = useRuntimeClient();
   const history = useStaticHistoryStore((state) => state.history);
   const [collapsed, setCollapsed] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  async function createNewChat() {
+  function createNewChat() {
     setActiveId(null);
-    await client?.createNewSession();
+    startStaticChat();
   }
 
   async function selectSession(session: StaticSessionSummary) {
@@ -37,7 +36,7 @@ export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps
       </div>
 
       <div className="sidebar-actions">
-        <Button className="sidebar-primary-action" onClick={() => void createNewChat()} aria-label="New Chat">
+        <Button className="sidebar-primary-action" onClick={createNewChat} aria-label="New Chat">
           <PlusIcon className="sidebar-action-icon" />
           <span>New Chat</span>
         </Button>
