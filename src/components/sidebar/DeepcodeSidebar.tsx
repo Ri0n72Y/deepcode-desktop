@@ -1,9 +1,10 @@
 import { Button, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { Bars3Icon, ChevronRightIcon, Cog6ToothIcon, FolderIcon, PlusIcon, QueueListIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
-import { readStaticHistory } from "../../lib/deepcode-static/static-client";
-import type { StaticHistoryResult, StaticProjectHistory, StaticSessionSummary } from "../../lib/deepcode-static/types";
+import { loadStaticSession } from "../../lib/deepcode-static/load-static-session";
+import type { StaticProjectHistory, StaticSessionSummary } from "../../lib/deepcode-static/types";
+import { useStaticHistoryStore } from "../../stores/static-history-store";
 import { cn } from "../../lib/utils/cn";
 
 type DeepcodeSidebarProps = {
@@ -12,21 +13,18 @@ type DeepcodeSidebarProps = {
 
 export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps) {
   const client = useRuntimeClient();
-  const [collapsed, setCollapsed] = useState(false);
-  const [history, setHistory] = useState<StaticHistoryResult | null>(null);
+  const history = useStaticHistoryStore((state) => state.history);
+  const [collapsed, setCollapsed] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
-
-  useEffect(() => {
-    void readStaticHistory().then(setHistory);
-  }, []);
 
   async function createNewChat() {
     setActiveId(null);
     await client?.createNewSession();
   }
 
-  function selectSession(session: StaticSessionSummary) {
+  async function selectSession(session: StaticSessionSummary) {
     setActiveId(session.id);
+    await loadStaticSession(session.id);
   }
 
   return (
@@ -39,24 +37,26 @@ export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps
       </div>
 
       <div className="sidebar-actions">
-        <Button className="sidebar-primary-action" onClick={() => void createNewChat()}>
+        <Button className="sidebar-primary-action" onClick={() => void createNewChat()} aria-label="New Chat">
           <PlusIcon className="sidebar-action-icon" />
           <span>New Chat</span>
         </Button>
       </div>
 
-      <nav className="sidebar-history" aria-label="DeepCode history">
-        <div className="sidebar-section-title">
-          <QueueListIcon className="sidebar-section-icon" />
-          <span>History</span>
-        </div>
-        {(history?.projects ?? []).map((project) => (
-          <ProjectGroup key={project.projectCode} activeId={activeId} project={project} onSelect={selectSession} />
-        ))}
-      </nav>
+      {!collapsed ? (
+        <nav className="sidebar-history" aria-label="DeepCode history">
+          <div className="sidebar-section-title">
+            <QueueListIcon className="sidebar-section-icon" />
+            <span>History</span>
+          </div>
+          {(history?.projects ?? []).map((project) => (
+            <ProjectGroup key={project.projectCode} activeId={activeId} project={project} onSelect={(session) => void selectSession(session)} />
+          ))}
+        </nav>
+      ) : null}
 
       <div className="sidebar-footer">
-        <Button className="sidebar-footer-button" onClick={onOpenSettings}>
+        <Button className="sidebar-footer-button" onClick={onOpenSettings} aria-label="Settings">
           <Cog6ToothIcon className="sidebar-action-icon" />
           <span>Settings</span>
         </Button>
