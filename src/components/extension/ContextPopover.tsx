@@ -7,11 +7,11 @@ export default function ContextPopover() {
   const percent = telemetry?.activeTokens && telemetry?.maxTokens ? Math.round((telemetry.activeTokens / telemetry.maxTokens) * 100) : 0;
 
   return (
-    <Popover className="context-meter-wrap">
-      <PopoverButton className="context-meter" aria-label="Open context usage details">
+    <Popover className="context-meter">
+      <PopoverButton className="context-meter" aria-label="Open context details">
         <span className="context-meter-ring" style={{ "--context-percent": `${percent}%` } as CSSProperties} />
       </PopoverButton>
-      <PopoverPanel className="context-meter-tooltip">
+      <PopoverPanel className="context-popover-panel">
         <div className="context-tooltip-title">Context Window</div>
         <div className="context-tooltip-summary">{percent}% used</div>
         <div className="context-tooltip-row"><span>model</span><span>{telemetry?.model ?? "unknown"}</span></div>
