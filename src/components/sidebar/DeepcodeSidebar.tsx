@@ -1,5 +1,5 @@
 import { Button, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
-import { ChevronRightIcon, Cog6ToothIcon, FolderIcon, PlusIcon, QueueListIcon, SidebarLeftIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, ChevronRightIcon, Cog6ToothIcon, FolderIcon, PlusIcon, QueueListIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
 import { readStaticHistory } from "../../lib/deepcode-static/static-client";
@@ -33,7 +33,7 @@ export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps
     <aside className={cn("deepcode-sidebar", collapsed && "collapsed")}>
       <div className="sidebar-topbar">
         <Button className="sidebar-icon-button" onClick={() => setCollapsed((value) => !value)} aria-label="Toggle sidebar">
-          <SidebarLeftIcon className="sidebar-icon" />
+          <Bars3Icon className="sidebar-icon" />
         </Button>
         <span className="sidebar-title">Deep Code</span>
       </div>
