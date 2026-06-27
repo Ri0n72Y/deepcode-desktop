@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { StaticHistoryResult, StaticSettingsResult } from "./types";
+import type { StaticHistoryResult, StaticSessionResult, StaticSettingsResult, StaticSkillInfo } from "./types";
 
 const fallbackHistory: StaticHistoryResult = {
   rootPath: "~/.deepcode/projects",
@@ -31,14 +31,37 @@ const fallbackSettings: StaticSettingsResult = {
   },
 };
 
+const fallbackSkills: StaticSkillInfo[] = [
+  { name: "labourboard-advisor", path: "~/.agents/skills/labourboard-advisor/SKILL.md", isLoaded: false },
+];
+
 export async function readStaticHistory(): Promise<StaticHistoryResult> {
   if (!isTauriRuntime()) return fallbackHistory;
   return await invoke<StaticHistoryResult>("read_deepcode_history");
 }
 
+export async function readStaticSession(sessionId: string): Promise<StaticSessionResult> {
+  if (!isTauriRuntime()) {
+    return {
+      sessionId,
+      projectCode: fallbackHistory.projects[0]?.projectCode ?? "demo",
+      messages: [
+        { id: `${sessionId}-user`, sessionId, role: "user", content: "Open saved conversation", visible: true },
+        { id: `${sessionId}-assistant`, sessionId, role: "assistant", content: "Loaded from static DeepCode history.", visible: true },
+      ],
+    };
+  }
+  return await invoke<StaticSessionResult>("read_deepcode_session", { sessionId });
+}
+
 export async function readStaticSettings(): Promise<StaticSettingsResult> {
   if (!isTauriRuntime()) return fallbackSettings;
   return await invoke<StaticSettingsResult>("read_deepcode_settings");
+}
+
+export async function readStaticSkills(): Promise<StaticSkillInfo[]> {
+  if (!isTauriRuntime()) return fallbackSkills;
+  return await invoke<StaticSkillInfo[]>("read_deepcode_skills");
 }
 
 function isTauriRuntime(): boolean {
