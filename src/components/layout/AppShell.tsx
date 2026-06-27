@@ -1,11 +1,5 @@
-import ChatContainerView from "../extension/ChatContainerView";
-import HeaderBar from "../extension/HeaderBar";
+import DesktopShell from "./DesktopShell";
 
 export default function AppShell() {
-  return (
-    <main className="app">
-      <HeaderBar />
-      <ChatContainerView />
-    </main>
-  );
+  return <DesktopShell />;
 }
