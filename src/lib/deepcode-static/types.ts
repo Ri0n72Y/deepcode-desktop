@@ -1,3 +1,5 @@
+import type { SessionMessage, SkillInfo } from "../runtime/types";
+
 export type StaticSessionSummary = {
   id: string;
   summary?: string | null;
@@ -17,6 +19,14 @@ export type StaticHistoryResult = {
   rootPath: string;
   projects: StaticProjectHistory[];
 };
+
+export type StaticSessionResult = {
+  sessionId: string;
+  projectCode: string;
+  messages: SessionMessage[];
+};
+
+export type StaticSkillInfo = SkillInfo;
 
 export type DeepcodeSettingsConfig = {
   env?: {
