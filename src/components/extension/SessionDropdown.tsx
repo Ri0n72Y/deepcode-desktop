@@ -1,9 +1,10 @@
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react";
 import { useMemo, useState } from "react";
-import { useRuntimeClient } from "../../app/providers";
-import type { SessionSummary } from "../../lib/runtime/types";
+import { loadStaticSession } from "../../lib/deepcode-static/load-static-session";
+import type { StaticProjectHistory, StaticSessionSummary } from "../../lib/deepcode-static/types";
 import { cn } from "../../lib/utils/cn";
 import { useSessionStore } from "../../stores/session-store";
+import { useStaticHistoryStore } from "../../stores/static-history-store";
 
 type SessionDropdownProps = {
   open: boolean;
@@ -11,28 +12,27 @@ type SessionDropdownProps = {
 };
 
 export default function SessionDropdown({ open, onClose }: SessionDropdownProps) {
-  const client = useRuntimeClient();
-  const sessions = useSessionStore((state) => state.list);
+  const history = useStaticHistoryStore((state) => state.history);
   const current = useSessionStore((state) => state.current);
-  const active = sessions.find((session) => session.id === current) ?? null;
   const [query, setQuery] = useState("");
-  const groups = useMemo(() => groupSessions(sessions, query), [sessions, query]);
-  const total = groups.today.length + groups.yesterday.length + groups.pastWeek.length;
+  const groups = useMemo(() => filterProjects(history?.projects ?? [], query), [history?.projects, query]);
+  const active = findActiveSession(groups, current);
+  const total = groups.reduce((sum, project) => sum + project.sessions.length, 0);
 
-  async function selectSession(session: SessionSummary | null) {
+  async function selectSession(session: StaticSessionSummary | null) {
     if (!session) return;
-    await client?.selectSession(session.id);
+    await loadStaticSession(session.id);
     setQuery("");
     onClose();
   }
 
   return (
-    <Combobox value={active} onChange={(session: SessionSummary | null) => void selectSession(session)}>
+    <Combobox value={active} onChange={(session: StaticSessionSummary | null) => void selectSession(session)}>
       <div className={cn("session-dropdown", open && "show")}>
         <div className="session-search-box">
           <ComboboxInput
             className="session-search-input"
-            displayValue={(session: SessionSummary | null) => query || session?.summary || ""}
+            displayValue={(session: StaticSessionSummary | null) => query || session?.summary || ""}
             onChange={(event) => setQuery(event.target.value)}
             onClick={(event) => event.stopPropagation()}
             placeholder="Search sessions..."
@@ -40,9 +40,9 @@ export default function SessionDropdown({ open, onClose }: SessionDropdownProps)
         </div>
         <ComboboxOptions static className="session-dropdown-list">
           {total === 0 ? <div className="session-dropdown-empty">{query ? "No sessions found" : "No sessions yet"}</div> : null}
-          <SessionGroup current={current} label="Today" query={query} sessions={groups.today} />
-          <SessionGroup current={current} label="Yesterday" query={query} sessions={groups.yesterday} />
-          <SessionGroup current={current} label="Past Week" query={query} sessions={groups.pastWeek} />
+          {groups.map((project) => (
+            <SessionGroup current={current} key={project.projectCode} project={project} query={query} />
+          ))}
         </ComboboxOptions>
       </div>
     </Combobox>
@@ -50,18 +50,17 @@ export default function SessionDropdown({ open, onClose }: SessionDropdownProps)
 }
 
 type SessionGroupProps = {
-  label: string;
-  sessions: SessionSummary[];
+  project: StaticProjectHistory;
   current: string | null;
   query: string;
 };
 
-function SessionGroup({ label, sessions, current, query }: SessionGroupProps) {
-  if (sessions.length === 0) return null;
+function SessionGroup({ project, current, query }: SessionGroupProps) {
+  if (project.sessions.length === 0) return null;
   return (
     <div className="session-dropdown-group">
-      <div className="session-dropdown-group-title">{label}</div>
-      {sessions.map((session) => (
+      <div className="session-dropdown-group-title">{shortProjectName(project.originalPath || project.projectCode)}</div>
+      {project.sessions.map((session) => (
         <ComboboxOption
           className={cn(
             "session-dropdown-item",
@@ -71,41 +70,42 @@ function SessionGroup({ label, sessions, current, query }: SessionGroupProps) {
           value={session}
         >
           <span className="session-dropdown-summary">{highlightText(session.summary || "Untitled", query)}</span>
-          <span className="session-dropdown-time">{formatSessionTime(session.updateTime)}</span>
+          <span className="session-dropdown-time">{formatSessionDate(session.updateTime)}</span>
         </ComboboxOption>
       ))}
     </div>
   );
 }
 
-function groupSessions(sessions: SessionSummary[], query: string) {
+function filterProjects(projects: StaticProjectHistory[], query: string): StaticProjectHistory[] {
   const normalized = query.trim().toLowerCase();
-  const filtered = normalized ? sessions.filter((session) => (session.summary || "Untitled").toLowerCase().includes(normalized)) : sessions;
-  const today: SessionSummary[] = [];
-  const yesterday: SessionSummary[] = [];
-  const pastWeek: SessionSummary[] = [];
-  const todayDate = startOfDay(new Date());
-  const yesterdayDate = new Date(todayDate);
-  yesterdayDate.setDate(todayDate.getDate() - 1);
-  const weekDate = new Date(todayDate);
-  weekDate.setDate(todayDate.getDate() - 7);
+  return projects
+    .map((project) => ({
+      ...project,
+      sessions: normalized
+        ? project.sessions.filter((session) => (session.summary || "Untitled").toLowerCase().includes(normalized))
+        : project.sessions,
+    }))
+    .filter((project) => project.sessions.length > 0);
+}
 
-  for (const session of filtered) {
-    const updated = session.updateTime ? startOfDay(new Date(session.updateTime)) : todayDate;
-    if (updated.getTime() === todayDate.getTime()) today.push(session);
-    else if (updated.getTime() === yesterdayDate.getTime()) yesterday.push(session);
-    else if (updated > weekDate) pastWeek.push(session);
+function findActiveSession(projects: StaticProjectHistory[], current: string | null): StaticSessionSummary | null {
+  if (!current) return null;
+  for (const project of projects) {
+    const session = project.sessions.find((item) => item.id === current);
+    if (session) return session;
   }
-  return { today, yesterday, pastWeek };
+  return null;
 }
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+function shortProjectName(value: string) {
+  const normalized = value.replace(/\\/g, "/");
+  return normalized.split("/").filter(Boolean).pop() || value;
 }
 
-function formatSessionTime(value?: string) {
+function formatSessionDate(value?: string | null) {
   if (!value) return "";
-  return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date(value).toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
 function highlightText(text: string, query: string) {
