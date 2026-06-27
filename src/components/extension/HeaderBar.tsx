@@ -1,13 +1,12 @@
 import { Button } from "@headlessui/react";
 import { ChevronDownIcon, CommandLineIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
-import { useRuntimeClient } from "../../app/providers";
+import { startStaticChat } from "../../lib/deepcode-static/start-static-chat";
 import { cn } from "../../lib/utils/cn";
 import { useSessionStore } from "../../stores/session-store";
 import SessionDropdown from "./SessionDropdown";
 
 export default function HeaderBar() {
-  const client = useRuntimeClient();
   const sessions = useSessionStore((state) => state.list);
   const current = useSessionStore((state) => state.current);
   const [open, setOpen] = useState(false);
@@ -32,7 +31,7 @@ export default function HeaderBar() {
         </Button>
         <SessionDropdown open={open} onClose={() => setOpen(false)} />
       </div>
-      <Button className="header-new-btn" title="New Chat" type="button" onClick={() => void client?.createNewSession()}>
+      <Button className="header-new-btn" title="New Chat" type="button" onClick={startStaticChat}>
         <PlusIcon className="header-new-icon" />
       </Button>
     </header>
