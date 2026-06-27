@@ -1,3 +1,4 @@
+import { cn } from "../../lib/utils/cn";
 import { useProcessStore } from "../../stores/process-store";
 
 type ThinkingBubbleProps = {
@@ -12,7 +13,12 @@ export default function ThinkingBubble({ shouldConnect }: ThinkingBubbleProps) {
   return (
     <div className="bubble assistant" data-thinking-live="true">
       <div className="bubble-collapsible-header">
-        <span className={`bubble-dot spinner-dot ${shouldConnect ? "connect-to-prev" : ""}`} />
+        <span
+          className={cn(
+            "bubble-dot spinner-dot",
+            shouldConnect && "connect-to-prev",
+          )}
+        />
         <span className="bubble-title">
           <span className="bubble-title-text"><b>Thinking</b> <span className="thinking-status">{text}</span></span>
         </span>
