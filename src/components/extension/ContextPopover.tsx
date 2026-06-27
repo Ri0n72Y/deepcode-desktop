@@ -11,7 +11,7 @@ export default function ContextPopover() {
       <PopoverButton className="context-meter" aria-label="Open context details">
         <span className="context-meter-ring" style={{ "--context-percent": `${percent}%` } as CSSProperties} />
       </PopoverButton>
-      <PopoverPanel className="context-popover-panel">
+      <PopoverPanel className="context-meter-tooltip">
         <div className="context-tooltip-title">Context Window</div>
         <div className="context-tooltip-summary">{percent}% used</div>
         <div className="context-tooltip-row"><span>model</span><span>{telemetry?.model ?? "unknown"}</span></div>
