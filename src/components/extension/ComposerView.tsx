@@ -6,7 +6,6 @@ import { useRuntimeClient } from "../../app/providers";
 import { cn } from "../../lib/utils/cn";
 import { useRuntimeStore } from "../../stores/runtime-store";
 import { useSkillStore } from "../../stores/skill-store";
-import { useUiPreferencesStore } from "../../stores/ui-preferences-store";
 import ContextPopover from "./ContextPopover";
 import PermissionPromptHost from "./PermissionPromptHost";
 import SkillsPopup from "./SkillsPopup";
@@ -16,7 +15,6 @@ export default function ComposerView() {
   const loading = useRuntimeStore((state) => state.loading);
   const selectedSkills = useSkillStore((state) => state.selected);
   const removeSkill = useSkillStore((state) => state.remove);
-  const showSkills = useUiPreferencesStore((state) => state.showSkills);
   const [text, setText] = useState("");
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -27,7 +25,7 @@ export default function ComposerView() {
     if (!prompt || loading) return;
     setText("");
     setFullscreen(false);
-    await client?.prompt({ text: prompt, skills: showSkills ? selectedSkills : [] });
+    await client?.prompt({ text: prompt, skills: selectedSkills });
   }
 
   async function sendOrStop() {
@@ -40,7 +38,7 @@ export default function ComposerView() {
 
   return (
     <div className="composer">
-      {showSkills ? <SkillsPopup open={skillsOpen} /> : null}
+      <SkillsPopup open={skillsOpen} />
       <PermissionPromptHost />
       <div className={cn("input-wrap", fullscreen && "fullscreen")}>
         <Button className="prompt-fullscreen-button" onClick={() => setFullscreen((value) => !value)} type="button" aria-label={fullscreen ? "Exit fullscreen composer" : "Expand composer"}>
@@ -67,20 +65,18 @@ export default function ComposerView() {
               <span>Skill</span>
             </Button>
             <ContextPopover />
-            {showSkills ? (
-              <div className="skills-tags">
-                <div className="skills-tags-inner">
-                  {selectedSkills.map((skill) => (
-                    <span className="skill-tag" key={skill.name}>
-                      <span className="skill-tag-name">{skill.name}</span>
-                      <Button className="skill-tag-remove" onClick={() => removeSkill(skill.name)} type="button" aria-label={`Remove ${skill.name}`}>
-                        <XMarkIcon className="skill-tag-remove-icon" />
-                      </Button>
-                    </span>
-                  ))}
-                </div>
+            <div className="skills-tags">
+              <div className="skills-tags-inner">
+                {selectedSkills.map((skill) => (
+                  <span className="skill-tag" key={skill.name}>
+                    <span className="skill-tag-name">{skill.name}</span>
+                    <Button className="skill-tag-remove" onClick={() => removeSkill(skill.name)} type="button" aria-label={`Remove ${skill.name}`}>
+                      <XMarkIcon className="skill-tag-remove-icon" />
+                    </Button>
+                  </span>
+                ))}
               </div>
-            ) : null}
+            </div>
           </div>
           <Button className="send-button" onClick={() => void sendOrStop()} type="button" aria-label={loading ? "Stop generation" : "Send prompt"}>
             {loading ? <StopIcon id="stopIcon" /> : <PaperAirplaneIcon id="sendIcon" className={cn(!text.trim() && "empty")} />}
