@@ -33,8 +33,7 @@ export class MockRuntimeClient implements RuntimeClient {
   }
 
   async ready(): Promise<void> {
-    this.emitSession();
-    await this.requestSkills();
+    this.emit({ type: "initializeEmpty", sessions: [], status: null, tokenTelemetry: this.telemetry(0) });
     this.emit({
       type: "modelConfig",
       config: {
@@ -57,7 +56,7 @@ export class MockRuntimeClient implements RuntimeClient {
   }
 
   async createNewSession(): Promise<void> {
-    this.emit({ type: "initializeEmpty", sessions: demoSessions, status: null, tokenTelemetry: this.telemetry() });
+    this.emit({ type: "initializeEmpty", sessions: demoSessions, status: null, tokenTelemetry: this.telemetry(0) });
   }
 
   async selectSession(sessionId: string): Promise<void> {
