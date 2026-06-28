@@ -2,9 +2,11 @@
 .desktop-chat-shell { min-width: 0; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .deepcode-sidebar { width: 272px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); background: var(--panel); transition: width 180ms ease, transform 180ms ease; }
 .deepcode-sidebar.collapsed { width: 52px; }
-.sidebar-topbar { display: flex; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid var(--border-color); }
+.sidebar-topbar { height: 43px; display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-bottom: 1px solid var(--border-color); }
+.sidebar-brand { width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sidebar-brand-icon { width: 18px; height: 18px; }
 .sidebar-title { font-weight: 700; white-space: nowrap; overflow: hidden; opacity: 1; transition: opacity 120ms ease; }
-.deepcode-sidebar.collapsed .sidebar-title, .deepcode-sidebar.collapsed .sidebar-primary-action span, .deepcode-sidebar.collapsed .sidebar-footer-button span { opacity: 0; pointer-events: none; }
+.deepcode-sidebar.collapsed .sidebar-brand, .deepcode-sidebar.collapsed .sidebar-title, .deepcode-sidebar.collapsed .sidebar-primary-action span, .deepcode-sidebar.collapsed .sidebar-footer-button span { display: none; }
 .sidebar-icon-button, .sidebar-footer-button, .sidebar-primary-action, .sidebar-project-button, .sidebar-session-item { border: none; border-radius: 6px; background: transparent; color: var(--vscode-foreground); cursor: pointer; }
 .sidebar-icon-button { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .sidebar-icon-button:hover, .sidebar-footer-button:hover, .sidebar-primary-action:hover, .sidebar-project-button:hover, .sidebar-session-item:hover { background: var(--vscode-toolbar-hoverBackground); }
