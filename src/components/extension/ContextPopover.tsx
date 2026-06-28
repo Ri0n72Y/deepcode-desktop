@@ -1,6 +1,7 @@
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import type { CSSProperties } from "react";
 import { useRuntimeStore } from "../../stores/runtime-store";
+import "./context-meter.css";
 
 export default function ContextPopover() {
   const telemetry = useRuntimeStore((state) => state.tokenTelemetry);
