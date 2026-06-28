@@ -1,8 +1,10 @@
 import { Button } from "@headlessui/react";
 import { ArrowDownIcon } from "@heroicons/react/24/outline";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { SessionMessage } from "../../lib/runtime/types";
 import { useChatStore } from "../../stores/chat-store";
 import { useRuntimeStore } from "../../stores/runtime-store";
+import { useUiPreferencesStore } from "../../stores/ui-preferences-store";
 import ComposerView from "./ComposerView";
 import MessageBubble from "./MessageBubble";
 import ThinkingBubble from "./ThinkingBubble";
@@ -10,9 +12,14 @@ import ThinkingBubble from "./ThinkingBubble";
 export default function ChatContainerView() {
   const messages = useChatStore((state) => state.messages);
   const loading = useRuntimeStore((state) => state.loading);
+  const showSkills = useUiPreferencesStore((state) => state.showSkills);
+  const showTools = useUiPreferencesStore((state) => state.showTools);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
-  const visibleMessages = useMemo(() => optimizeVisibleMessages(messages), [messages]);
+  const visibleMessages = useMemo(
+    () => optimizeVisibleMessages(filterTimelineMessages(messages, showSkills, showTools)),
+    [messages, showSkills, showTools],
+  );
 
   useEffect(() => {
     scrollToBottom("auto");
@@ -47,6 +54,18 @@ export default function ChatContainerView() {
       <ComposerView />
     </section>
   );
+}
+
+function filterTimelineMessages(messages: SessionMessage[], showSkills: boolean, showTools: boolean): SessionMessage[] {
+  return messages.filter((message) => {
+    if (!showTools && message.role === "tool") return false;
+    if (!showSkills && message.role === "system" && isSkillMessage(message)) return false;
+    return true;
+  });
+}
+
+function isSkillMessage(message: SessionMessage): boolean {
+  return Boolean(message.meta && "skill" in message.meta);
 }
 
 function optimizeVisibleMessages<T extends { role: string; content: string | null }>(messages: T[]): T[] {
