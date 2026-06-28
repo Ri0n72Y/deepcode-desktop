@@ -53,8 +53,9 @@ export type TokenTelemetry = {
   thinkingEnabled?: boolean;
   reasoningEffort?: string;
   activeTokens?: number;
+  compactPromptTokenThreshold?: number;
   maxTokens?: number;
-  usage?: Record<string, unknown>;
+  usage?: Record<string, unknown> | null;
 };
 
 export type SessionMessage = {
