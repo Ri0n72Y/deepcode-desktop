@@ -1,5 +1,5 @@
 import { Button, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
-import { CheckIcon, ChevronRightIcon, ClipboardDocumentIcon, WrenchScrewdriverIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, ChevronRightIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { useState, type ReactNode } from "react";
 import type { SessionMessage } from "../../lib/runtime/types";
 import { cn } from "../../lib/utils/cn";
@@ -52,9 +52,13 @@ function AssistantBubble({ message }: { message: SessionMessage }) {
   const content = message.content ?? "";
 
   async function copyMessage() {
-    await navigator.clipboard?.writeText(content);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1200);
+    try {
+      await navigator.clipboard?.writeText(content);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch {
+      setCopied(false);
+    }
   }
 
   return (
@@ -81,10 +85,7 @@ function CollapsibleBubble({ title, dotClass, children }: { title: string; dotCl
           <DisclosureButton className="bubble-collapsible-header" aria-label={`Toggle ${title} details`}>
             <span className={cn("bubble-dot", dotClass)} />
             <span className="bubble-title">
-              <span className="bubble-title-text">
-                <WrenchScrewdriverIcon className="bubble-title-icon" />
-                <b>{title}</b>
-              </span>
+              <span className="bubble-title-text"><b>{title}</b></span>
               <ChevronRightIcon
                 className={cn(
                   "bubble-toggle-icon",
