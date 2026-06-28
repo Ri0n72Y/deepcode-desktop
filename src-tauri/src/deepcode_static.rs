@@ -11,6 +11,8 @@ pub struct StaticSessionSummary {
     pub status: Option<String>,
     pub create_time: Option<String>,
     pub update_time: Option<String>,
+    pub active_tokens: Option<u64>,
+    pub usage: Option<Value>,
 }
 
 #[derive(Debug, Serialize)]
@@ -42,6 +44,8 @@ pub struct StaticSettingsResult {
 pub struct StaticSessionResult {
     pub session_id: String,
     pub project_code: String,
+    pub active_tokens: Option<u64>,
+    pub usage: Option<Value>,
     pub messages: Vec<Value>,
 }
 
@@ -80,7 +84,14 @@ pub fn read_deepcode_session(session_id: String) -> Result<StaticSessionResult, 
         let session_path = project_path.join(format!("{session_id}.jsonl"));
         if session_path.exists() {
             let project_code = project_path.file_name().and_then(|value| value.to_str()).unwrap_or("unknown").to_string();
-            return Ok(StaticSessionResult { session_id, project_code, messages: read_jsonl_values(&session_path)? });
+            let summary = read_session_summary(&project_path, &session_id)?;
+            return Ok(StaticSessionResult {
+                session_id,
+                project_code,
+                active_tokens: summary.as_ref().and_then(|entry| entry.active_tokens),
+                usage: summary.and_then(|entry| entry.usage),
+                messages: read_jsonl_values(&session_path)?,
+            });
         }
     }
     Err(format!("Session file not found: {session_id}"))
@@ -126,6 +137,14 @@ fn read_project_history(path: &Path) -> Result<Option<StaticProjectHistory>, Str
     Ok(Some(StaticProjectHistory { project_code, project_path: path_to_string(path), original_path, sessions }))
 }
 
+fn read_session_summary(project_path: &Path, session_id: &str) -> Result<Option<StaticSessionSummary>, String> {
+    let index_path = project_path.join("sessions-index.json");
+    if !index_path.exists() { return Ok(None); }
+    let index: Value = serde_json::from_str(&fs::read_to_string(&index_path).map_err(to_string)?).map_err(to_string)?;
+    let entries = index.get("entries").and_then(Value::as_array).cloned().unwrap_or_default();
+    Ok(entries.into_iter().filter_map(session_from_value).find(|entry| entry.id == session_id))
+}
+
 fn session_from_value(value: Value) -> Option<StaticSessionSummary> {
     Some(StaticSessionSummary {
         id: value.get("id")?.as_str()?.to_string(),
@@ -133,6 +152,8 @@ fn session_from_value(value: Value) -> Option<StaticSessionSummary> {
         status: value.get("status").and_then(Value::as_str).map(str::to_string),
         create_time: value.get("createTime").and_then(Value::as_str).map(str::to_string),
         update_time: value.get("updateTime").and_then(Value::as_str).map(str::to_string),
+        active_tokens: value.get("activeTokens").and_then(Value::as_u64),
+        usage: value.get("usage").cloned(),
     })
 }
 
