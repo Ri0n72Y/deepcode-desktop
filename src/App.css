@@ -141,7 +141,8 @@ body { overflow: hidden; background: var(--bg); color: var(--vscode-foreground);
 .context-meter { position: relative; width: 20px; height: 20px; flex-shrink: 0; }
 .context-meter-button { width: 20px; height: 20px; border: none; padding: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 .context-meter-ring { width: 20px; height: 20px; border-radius: 50%; background: conic-gradient(var(--accent-2) var(--context-percent, 0%), var(--vscode-editor-background) 0); border: 1px solid var(--border-color); }
-.context-meter-tooltip { position: absolute; bottom: 28px; left: -120px; width: 260px; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--vscode-dropdown-background); box-shadow: 0 4px 12px var(--shadow); z-index: 40; }
+.context-meter-tooltip { position: absolute; bottom: 28px; left: -120px; width: 260px; display: none; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--vscode-dropdown-background); box-shadow: 0 4px 12px var(--shadow); z-index: 40; }
+.context-meter:hover .context-meter-tooltip { display: block; }
 .context-tooltip-title { font-weight: 700; text-align: center; }
 .context-tooltip-summary { color: var(--vscode-foreground); font-weight: 700; text-align: center; margin: 4px 0 12px; }
 .context-tooltip-row { display: flex; justify-content: space-between; gap: 24px; color: var(--muted); }
