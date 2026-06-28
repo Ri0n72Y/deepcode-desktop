@@ -1,6 +1,7 @@
 import { Button, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { Bars3Icon, ChevronRightIcon, Cog6ToothIcon, FolderIcon, PlusIcon, QueueListIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import DeepcodeIcon from "../brand/DeepcodeIcon";
 import { loadStaticSession } from "../../lib/deepcode-static/load-static-session";
 import { startStaticChat } from "../../lib/deepcode-static/start-static-chat";
 import type { StaticProjectHistory, StaticSessionSummary } from "../../lib/deepcode-static/types";
@@ -31,13 +32,14 @@ export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps
         <Button className="sidebar-icon-button" onClick={() => setCollapsed((value) => !value)} aria-label="Toggle sidebar">
           <Bars3Icon className="sidebar-icon" />
         </Button>
+        <span className="sidebar-brand" aria-hidden="true"><DeepcodeIcon className="sidebar-brand-icon" /></span>
         <span className="sidebar-title">Deep Code</span>
       </div>
 
       <div className="sidebar-actions">
         <Button className="sidebar-primary-action" onClick={createNewChat} aria-label="New Chat">
           <PlusIcon className="sidebar-action-icon" />
-          <span>New Chat</span>
+          {!collapsed && <span className="whitespace-nowrap">New Chat</span>}
         </Button>
       </div>
 
@@ -54,7 +56,7 @@ export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps
       <div className="sidebar-footer">
         <Button className="sidebar-footer-button" onClick={onOpenSettings} aria-label="Settings">
           <Cog6ToothIcon className="sidebar-action-icon" />
-          <span>Settings</span>
+          {!collapsed && <span className="whitespace-nowrap">Settings</span>}
         </Button>
       </div>
     </aside>
