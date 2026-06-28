@@ -1,5 +1,5 @@
 import { Button, Textarea } from "@headlessui/react";
-import { ArrowsPointingInIcon, ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
+import { AcademicCapIcon, ArrowsPointingInIcon, ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import { PaperAirplaneIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useMemo, useState } from "react";
 import { useRuntimeClient } from "../../app/providers";
@@ -62,25 +62,26 @@ export default function ComposerView() {
         />
         <div className="composer-footer">
           <div className="skills-bar">
+            <Button className="skills-button" onClick={() => setSkillsOpen((value) => !value)} type="button">
+              <AcademicCapIcon className="skills-button-icon" />
+              <span>Skill</span>
+            </Button>
+            <ContextPopover />
             {showSkills ? (
-              <>
-                <Button className="skills-button" onClick={() => setSkillsOpen((value) => !value)} type="button">Skills</Button>
-                <div className="skills-tags">
-                  <div className="skills-tags-inner">
-                    {selectedSkills.map((skill) => (
-                      <span className="skill-tag" key={skill.name}>
-                        <span className="skill-tag-name">{skill.name}</span>
-                        <Button className="skill-tag-remove" onClick={() => removeSkill(skill.name)} type="button" aria-label={`Remove ${skill.name}`}>
-                          <XMarkIcon className="skill-tag-remove-icon" />
-                        </Button>
-                      </span>
-                    ))}
-                  </div>
+              <div className="skills-tags">
+                <div className="skills-tags-inner">
+                  {selectedSkills.map((skill) => (
+                    <span className="skill-tag" key={skill.name}>
+                      <span className="skill-tag-name">{skill.name}</span>
+                      <Button className="skill-tag-remove" onClick={() => removeSkill(skill.name)} type="button" aria-label={`Remove ${skill.name}`}>
+                        <XMarkIcon className="skill-tag-remove-icon" />
+                      </Button>
+                    </span>
+                  ))}
                 </div>
-              </>
+              </div>
             ) : null}
           </div>
-          <ContextPopover />
           <Button className="send-button" onClick={() => void sendOrStop()} type="button" aria-label={loading ? "Stop generation" : "Send prompt"}>
             {loading ? <StopIcon id="stopIcon" /> : <PaperAirplaneIcon id="sendIcon" className={cn(!text.trim() && "empty")} />}
           </Button>
