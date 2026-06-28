@@ -71,7 +71,7 @@ type ProjectGroupProps = {
 
 function ProjectGroup({ project, activeId, onSelect }: ProjectGroupProps) {
   const name = project.originalPath || project.projectCode;
-  const sessions = project.sessions.slice(0, 12);
+  const sessions = project.sessions;
   const isActiveProject = sessions.some((session) => session.id === activeId);
 
   return (
