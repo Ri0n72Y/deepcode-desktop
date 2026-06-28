@@ -1,6 +1,7 @@
 import { Button } from "@headlessui/react";
-import { ChevronDownIcon, CommandLineIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import DeepcodeIcon from "../brand/DeepcodeIcon";
 import { startStaticChat } from "../../lib/deepcode-static/start-static-chat";
 import { cn } from "../../lib/utils/cn";
 import { useSessionStore } from "../../stores/session-store";
@@ -23,9 +24,9 @@ export default function HeaderBar() {
           onClick={() => setOpen((value) => !value)}
           type="button"
         >
-          <span className="session-logo" aria-hidden="true"><CommandLineIcon className="session-logo-icon" /></span>
+          <span className="session-logo" aria-hidden="true"><DeepcodeIcon className="session-logo-icon" /></span>
           <span className="session-selector-title">
-            <span className="session-title-text">{active?.summary ?? "Deep Code"}</span>
+            <span className="session-title-text">{active?.summary ?? "New Conversation"}</span>
           </span>
           <ChevronDownIcon className="session-selector-icon" />
         </Button>
