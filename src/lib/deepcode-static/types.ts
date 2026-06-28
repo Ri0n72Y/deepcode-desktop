@@ -6,6 +6,12 @@ export type StaticSessionSummary = {
   status?: string | null;
   createTime?: string | null;
   updateTime?: string | null;
+  model?: string | null;
+  thinkingEnabled?: boolean | null;
+  reasoningEffort?: string | null;
+  activeTokens?: number | null;
+  compactPromptTokenThreshold?: number | null;
+  usage?: Record<string, unknown> | null;
 };
 
 export type StaticProjectHistory = {
@@ -23,6 +29,12 @@ export type StaticHistoryResult = {
 export type StaticSessionResult = {
   sessionId: string;
   projectCode: string;
+  model?: string | null;
+  thinkingEnabled?: boolean | null;
+  reasoningEffort?: string | null;
+  activeTokens?: number | null;
+  compactPromptTokenThreshold?: number | null;
+  usage?: Record<string, unknown> | null;
   messages: SessionMessage[];
 };
 
