@@ -14,7 +14,9 @@ type SettingsDialogProps = {
 export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const [settings, setSettings] = useState<StaticSettingsResult | null>(null);
   const showSkills = useUiPreferencesStore((state) => state.showSkills);
+  const showTools = useUiPreferencesStore((state) => state.showTools);
   const setShowSkills = useUiPreferencesStore((state) => state.setShowSkills);
+  const setShowTools = useUiPreferencesStore((state) => state.setShowTools);
 
   useEffect(() => {
     if (open) void reload();
@@ -68,7 +70,8 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
               </TabPanel>
               <TabPanel className="settings-tab-panel">
                 <div className="settings-list">
-                  <SettingsSwitch label="显示 skill" checked={showSkills} onChange={setShowSkills} />
+                  <SettingsSwitch label="显示 timeline skill" checked={showSkills} onChange={setShowSkills} />
+                  <SettingsSwitch label="显示 timeline tools" checked={showTools} onChange={setShowTools} />
                 </div>
               </TabPanel>
             </TabPanels>
