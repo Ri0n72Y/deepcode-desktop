@@ -47,7 +47,7 @@
   padding: 12px 14px;
   border: 1px solid var(--vscode-editorHoverWidget-border, var(--border-color));
   border-radius: 12px;
-  background: var(--vscode-editorHoverWidget-background, var(--vscode-editorWidget-background, var(--vscode-dropdown-background));
+  background: var(--vscode-editorHoverWidget-background, var(--vscode-editorWidget-background, var(--vscode-dropdown-background)));
   color: var(--vscode-editorHoverWidget-foreground, var(--vscode-foreground));
   box-shadow: 0 8px 24px var(--shadow);
   font-size: 12px;
