@@ -34,7 +34,6 @@ export default function ChatContainerView() {
   return (
     <section className="chat-container">
       <div className="messages" onScroll={updateScrollState} ref={messagesRef}>
-        {visibleMessages.length === 0 ? <div className="empty-chat">Start a new Deep Code session.</div> : null}
         {visibleMessages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
