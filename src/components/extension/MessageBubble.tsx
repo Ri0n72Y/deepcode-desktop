@@ -4,9 +4,11 @@ import { useState, type ReactNode } from "react";
 import type { SessionMessage } from "../../lib/runtime/types";
 import { cn } from "../../lib/utils/cn";
 
+const COLLAPSE_LINE_LIMIT = 20;
+
 export default function MessageBubble({ message }: { message: SessionMessage }) {
   if (message.role === "user") {
-    return <div className="bubble user">{message.content}</div>;
+    return <UserBubble content={message.content ?? ""} />;
   }
 
   if (message.role === "assistant") {
@@ -24,6 +26,24 @@ export default function MessageBubble({ message }: { message: SessionMessage }) 
     >
       {message.content}
     </CollapsibleBubble>
+  );
+}
+
+function UserBubble({ content }: { content: string }) {
+  const lines = content.split("\n");
+  if (lines.length <= COLLAPSE_LINE_LIMIT) {
+    return <div className="bubble user">{content}</div>;
+  }
+
+  return (
+    <Disclosure as="div" className="bubble user long-user-bubble">
+      {({ open }) => (
+        <>
+          <div className="user-bubble-content">{open ? content : lines.slice(0, COLLAPSE_LINE_LIMIT).join("\n")}</div>
+          <DisclosureButton className="bubble-expand-button">{open ? "收起" : "展开"}</DisclosureButton>
+        </>
+      )}
+    </Disclosure>
   );
 }
 
@@ -55,7 +75,7 @@ function AssistantBubble({ message }: { message: SessionMessage }) {
 
 function CollapsibleBubble({ title, dotClass, children }: { title: string; dotClass: string; children: ReactNode }) {
   return (
-    <Disclosure as="div" className="bubble tool" defaultOpen>
+    <Disclosure as="div" className="bubble tool">
       {({ open }) => (
         <>
           <DisclosureButton className="bubble-collapsible-header" aria-label={`Toggle ${title} details`}>
