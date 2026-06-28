@@ -5,7 +5,9 @@ import "./context-meter.css";
 
 export default function ContextPopover() {
   const telemetry = useRuntimeStore((state) => state.tokenTelemetry);
-  const percent = telemetry?.activeTokens && telemetry?.maxTokens ? Math.round((telemetry.activeTokens / telemetry.maxTokens) * 100) : 0;
+  const activeTokens = telemetry?.activeTokens ?? 0;
+  const limit = (telemetry as { compactPromptTokenThreshold?: number } | null)?.compactPromptTokenThreshold ?? telemetry?.maxTokens ?? 0;
+  const percent = limit > 0 ? Math.min(100, Math.round((activeTokens / limit) * 100)) : 0;
 
   return (
     <Popover className="context-meter">
@@ -16,9 +18,9 @@ export default function ContextPopover() {
         <div className="context-tooltip-title">Context Window</div>
         <div className="context-tooltip-summary">{percent}% used</div>
         <div className="context-tooltip-row"><span>model</span><span>{telemetry?.model ?? "unknown"}</span></div>
-        <div className="context-tooltip-row"><span>thinking enabled</span><span>false</span></div>
-        <div className="context-tooltip-row"><span>reasoning effort</span><span>max</span></div>
-        <div className="context-tooltip-row"><span>activeTokens</span><span>{telemetry?.activeTokens ?? 0}</span></div>
+        <div className="context-tooltip-row"><span>thinking enabled</span><span>{String(telemetry?.thinkingEnabled ?? false)}</span></div>
+        <div className="context-tooltip-row"><span>reasoning effort</span><span>{telemetry?.reasoningEffort ?? ""}</span></div>
+        <div className="context-tooltip-row"><span>activeTokens</span><span>{activeTokens}</span></div>
       </PopoverPanel>
     </Popover>
   );
