@@ -18,11 +18,21 @@ describe("MessageBubble", () => {
     await waitFor(() => expect(writeText).toHaveBeenCalledWith("copy me"));
   });
 
-  it("toggles tool details through Headless UI disclosure", () => {
+  it("keeps tool details collapsed by default", () => {
     render(<MessageBubble message={{ id: "m2", role: "tool", content: "tool output" }} />);
 
-    expect(screen.getByText("tool output")).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("Toggle tool details"));
     expect(screen.queryByText("tool output")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Toggle tool details"));
+    expect(screen.getByText("tool output")).toBeInTheDocument();
+  });
+
+  it("collapses long user prompts", () => {
+    const content = Array.from({ length: 22 }, (_, index) => `line ${index + 1}`).join("\n");
+
+    render(<MessageBubble message={{ id: "m3", role: "user", content }} />);
+
+    expect(screen.queryByText("line 22")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("展开"));
+    expect(screen.getByText(/line 22/)).toBeInTheDocument();
   });
 });
