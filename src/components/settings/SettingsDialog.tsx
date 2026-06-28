@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogBackdrop, DialogPanel, DialogTitle, Field, Input, Label, Select, Switch, Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { ArrowPathIcon, Cog6ToothIcon, PencilSquareIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { readStaticSettings } from "../../lib/deepcode-static/static-client";
 import type { StaticSettingsResult } from "../../lib/deepcode-static/types";
 import { cn } from "../../lib/utils/cn";
@@ -79,7 +79,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   );
 }
 
-function SettingsTab({ icon, label }: { icon: React.ReactNode; label: string }) {
+function SettingsTab({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <Tab className={({ selected }) => cn("settings-tab", selected && "selected")}>
       {icon}
