@@ -1,9 +1,9 @@
 use serde::Serialize;
 use serde_json::{json, Value};
-use std::{env, fs};
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StaticSessionSummary {
     pub id: String,
@@ -11,7 +11,11 @@ pub struct StaticSessionSummary {
     pub status: Option<String>,
     pub create_time: Option<String>,
     pub update_time: Option<String>,
+    pub model: Option<String>,
+    pub thinking_enabled: Option<bool>,
+    pub reasoning_effort: Option<String>,
     pub active_tokens: Option<u64>,
+    pub compact_prompt_token_threshold: Option<u64>,
     pub usage: Option<Value>,
 }
 
@@ -44,7 +48,11 @@ pub struct StaticSettingsResult {
 pub struct StaticSessionResult {
     pub session_id: String,
     pub project_code: String,
+    pub model: Option<String>,
+    pub thinking_enabled: Option<bool>,
+    pub reasoning_effort: Option<String>,
     pub active_tokens: Option<u64>,
+    pub compact_prompt_token_threshold: Option<u64>,
     pub usage: Option<Value>,
     pub messages: Vec<Value>,
 }
@@ -65,10 +73,12 @@ pub fn read_deepcode_history() -> Result<StaticHistoryResult, String> {
     if root.exists() {
         for entry in fs::read_dir(&root).map_err(to_string)? {
             let path = entry.map_err(to_string)?.path();
-            if path.is_dir() {
-                if let Some(project) = read_project_history(&path)? {
-                    projects.push(project);
-                }
+            if !path.is_dir() {
+                continue;
+            }
+            match read_project_history(&path) {
+                Ok(Some(project)) => projects.push(project),
+                Ok(None) | Err(_) => continue,
             }
         }
     }
@@ -84,11 +94,15 @@ pub fn read_deepcode_session(session_id: String) -> Result<StaticSessionResult, 
         let session_path = project_path.join(format!("{session_id}.jsonl"));
         if session_path.exists() {
             let project_code = project_path.file_name().and_then(|value| value.to_str()).unwrap_or("unknown").to_string();
-            let summary = read_session_summary(&project_path, &session_id)?;
+            let summary = read_session_summary(&project_path, &session_id).ok().flatten();
             return Ok(StaticSessionResult {
                 session_id,
                 project_code,
+                model: summary.as_ref().and_then(|entry| entry.model.clone()),
+                thinking_enabled: summary.as_ref().and_then(|entry| entry.thinking_enabled),
+                reasoning_effort: summary.as_ref().and_then(|entry| entry.reasoning_effort.clone()),
                 active_tokens: summary.as_ref().and_then(|entry| entry.active_tokens),
+                compact_prompt_token_threshold: summary.as_ref().and_then(|entry| entry.compact_prompt_token_threshold),
                 usage: summary.and_then(|entry| entry.usage),
                 messages: read_jsonl_values(&session_path)?,
             });
@@ -128,7 +142,9 @@ pub fn read_deepcode_settings() -> Result<StaticSettingsResult, String> {
 
 fn read_project_history(path: &Path) -> Result<Option<StaticProjectHistory>, String> {
     let index_path = path.join("sessions-index.json");
-    if !index_path.exists() { return Ok(None); }
+    if !index_path.exists() {
+        return Ok(None);
+    }
     let index: Value = serde_json::from_str(&fs::read_to_string(&index_path).map_err(to_string)?).map_err(to_string)?;
     let entries = index.get("entries").and_then(Value::as_array).cloned().unwrap_or_default();
     let sessions = entries.into_iter().filter_map(session_from_value).collect::<Vec<_>>();
@@ -139,7 +155,9 @@ fn read_project_history(path: &Path) -> Result<Option<StaticProjectHistory>, Str
 
 fn read_session_summary(project_path: &Path, session_id: &str) -> Result<Option<StaticSessionSummary>, String> {
     let index_path = project_path.join("sessions-index.json");
-    if !index_path.exists() { return Ok(None); }
+    if !index_path.exists() {
+        return Ok(None);
+    }
     let index: Value = serde_json::from_str(&fs::read_to_string(&index_path).map_err(to_string)?).map_err(to_string)?;
     let entries = index.get("entries").and_then(Value::as_array).cloned().unwrap_or_default();
     Ok(entries.into_iter().filter_map(session_from_value).find(|entry| entry.id == session_id))
@@ -152,7 +170,11 @@ fn session_from_value(value: Value) -> Option<StaticSessionSummary> {
         status: value.get("status").and_then(Value::as_str).map(str::to_string),
         create_time: value.get("createTime").and_then(Value::as_str).map(str::to_string),
         update_time: value.get("updateTime").and_then(Value::as_str).map(str::to_string),
+        model: value.get("model").and_then(Value::as_str).map(str::to_string),
+        thinking_enabled: value.get("thinkingEnabled").and_then(Value::as_bool),
+        reasoning_effort: value.get("reasoningEffort").and_then(Value::as_str).map(str::to_string),
         active_tokens: value.get("activeTokens").and_then(Value::as_u64),
+        compact_prompt_token_threshold: value.get("compactPromptTokenThreshold").and_then(Value::as_u64),
         usage: value.get("usage").cloned(),
     })
 }
