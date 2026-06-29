@@ -15,8 +15,12 @@ export function RuntimeProvider({ children }: RuntimeProviderProps) {
   useEffect(() => {
     const unsubscribe = client.subscribe(dispatchRuntimeEvent);
     async function boot() {
-      await client.startRuntime();
-      await client.ready();
+      try {
+        await client.startRuntime();
+        await client.ready();
+      } catch (error) {
+        dispatchRuntimeEvent({ type: "error", error: error instanceof Error ? error.message : String(error) });
+      }
     }
     void boot();
     return unsubscribe;
