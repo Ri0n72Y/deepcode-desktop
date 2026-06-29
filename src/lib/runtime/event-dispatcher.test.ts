@@ -25,6 +25,12 @@ describe("dispatchRuntimeEvent", () => {
     expect(useChatStore.getState().messages[0]?.content).toBe("hello");
   });
 
+  it("stores runtime status", () => {
+    dispatchRuntimeEvent({ type: "runtimeStatus", status: "starting", projectRoot: "/tmp/project" });
+    expect(useRuntimeStore.getState().status).toBe("starting");
+    expect(useRuntimeStore.getState().projectRoot).toBe("/tmp/project");
+  });
+
   it("stores model config", () => {
     dispatchRuntimeEvent({
       type: "modelConfig",
