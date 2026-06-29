@@ -1,0 +1,92 @@
+.context-meter {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  z-index: 10003;
+}
+
+.context-meter-button {
+  width: 18px;
+  height: 18px;
+  border: none;
+  padding: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.context-meter-ring {
+  --context-percent: 0%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, var(--vscode-input-background) 36%, transparent 38%),
+    conic-gradient(
+      var(--vscode-descriptionForeground) 0 var(--context-percent),
+      var(--vscode-editorWidget-border, var(--vscode-panel-border)) var(--context-percent) 100%
+    );
+}
+
+.context-meter:hover .context-meter-ring {
+  filter: brightness(1.1);
+}
+
+.context-meter-tooltip {
+  position: fixed;
+  left: 72px;
+  bottom: 96px;
+  display: none;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(420px, 70vh);
+  overflow: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--vscode-editorHoverWidget-border, var(--border-color));
+  border-radius: 12px;
+  background: var(--vscode-editorHoverWidget-background, var(--vscode-editorWidget-background, var(--vscode-dropdown-background)));
+  color: var(--vscode-editorHoverWidget-foreground, var(--vscode-foreground));
+  box-shadow: 0 8px 24px var(--shadow);
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
+  z-index: 10002;
+}
+
+.context-meter:hover .context-meter-tooltip {
+  display: block;
+}
+
+.context-tooltip-title {
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.context-tooltip-summary {
+  text-align: center;
+  color: var(--vscode-foreground);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.context-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.context-tooltip-row span:last-child {
+  max-width: 55%;
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-editor-font-family);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
