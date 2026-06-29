@@ -5,12 +5,20 @@ import { useProcessStore } from "../../stores/process-store";
 import { useRuntimeStore } from "../../stores/runtime-store";
 import { useSessionStore } from "../../stores/session-store";
 import { useSkillStore } from "../../stores/skill-store";
-import type { HeadlessEvent, SessionMessage } from "./types";
+import type { HeadlessEvent, RuntimeConnectionStatus, SessionMessage } from "./types";
 
 export function dispatchRuntimeEvent(event: HeadlessEvent): void {
   switch (event.type) {
     case "connected":
       useRuntimeStore.getState().setStatus("connected");
+      break;
+    case "runtimeStatus":
+      if (isRuntimeConnectionStatus(event.status)) {
+        useRuntimeStore.getState().setStatus(event.status);
+      }
+      if (typeof event.projectRoot === "string" || event.projectRoot === null) {
+        useRuntimeStore.getState().setProjectRoot(event.projectRoot ?? null);
+      }
       break;
     case "initializeEmpty":
       useChatStore.getState().clear();
@@ -99,4 +107,8 @@ export function dispatchRuntimeEvent(event: HeadlessEvent): void {
 
 function isSessionMessage(value: unknown): value is SessionMessage {
   return Boolean(value && typeof value === "object" && "role" in value && "content" in value);
+}
+
+function isRuntimeConnectionStatus(value: unknown): value is RuntimeConnectionStatus {
+  return value === "offline" || value === "starting" || value === "connected" || value === "error";
 }
