@@ -1,9 +1,13 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { HeadlessEvent, PromptInput, RuntimeClient, RuntimeStatus, SessionMessage } from "./types";
 
-type RuntimeProxyResult<T = unknown> = T & {
-  ok?: boolean;
-  error?: string;
+type RuntimeProxyFailure = {
+  ok: false;
+  error: string;
+};
+
+type RuntimePromptResponse = {
+  requestId?: string;
 };
 
 export class TauriRuntimeClient implements RuntimeClient {
@@ -65,11 +69,12 @@ export class TauriRuntimeClient implements RuntimeClient {
     this.emit({ type: "loading", requestId, value: true, status: "running" });
 
     try {
-      const response = await this.request<RuntimeProxyResult<{ requestId?: string }>>("/prompt", "POST", input);
+      const response = await this.request<RuntimePromptResponse | RuntimeProxyFailure>("/prompt", "POST", input);
       if (isProxyFailure(response)) {
         this.emitAssistantError(requestId, response.error);
+        return { requestId };
       }
-      return { requestId: response.requestId ?? requestId };
+      return { requestId: typeof response.requestId === "string" ? response.requestId : requestId };
     } catch (error) {
       this.emitAssistantError(requestId, errorToMessage(error));
       return { requestId };
@@ -124,8 +129,8 @@ export class TauriRuntimeClient implements RuntimeClient {
   }
 }
 
-function isProxyFailure(value: RuntimeProxyResult): value is RuntimeProxyResult & { ok: false; error: string } {
-  return value?.ok === false && typeof value.error === "string";
+function isProxyFailure(value: RuntimePromptResponse | RuntimeProxyFailure): value is RuntimeProxyFailure {
+  return "ok" in value && value.ok === false && typeof value.error === "string";
 }
 
 function errorToMessage(error: unknown): string {
