@@ -51,8 +51,8 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
 
           <TabGroup className="settings-tabs">
             <TabList className="settings-tab-list">
-              <SettingsTab icon={<Cog6ToothIcon className="settings-tab-icon" />} label="DeepCode setting" />
-              <SettingsTab icon={<PencilSquareIcon className="settings-tab-icon" />} label="对话设定" />
+              <SettingsTab icon={<Cog6ToothIcon className="settings-tab-icon" />} label="DeepCode Settings" />
+              <SettingsTab icon={<PencilSquareIcon className="settings-tab-icon" />} label="Conversation" />
             </TabList>
             <TabPanels className="settings-tab-panels">
               <TabPanel className="settings-tab-panel">
@@ -70,8 +70,8 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
               </TabPanel>
               <TabPanel className="settings-tab-panel">
                 <div className="settings-list">
-                  <SettingsSwitch label="显示 timeline skill" checked={showSkills} onChange={setShowSkills} />
-                  <SettingsSwitch label="显示 timeline tools" checked={showTools} onChange={setShowTools} />
+                  <SettingsSwitch label="Show timeline skills" checked={showSkills} onChange={setShowSkills} />
+                  <SettingsSwitch label="Show timeline tools" checked={showTools} onChange={setShowTools} />
                 </div>
               </TabPanel>
             </TabPanels>
