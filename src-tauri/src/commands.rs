@@ -10,7 +10,7 @@ pub fn start_deepcode_server(
     state: State<'_, SharedRuntimeState>,
 ) -> Result<RuntimeStatus, String> {
     let mut guard = state.lock().map_err(|error| error.to_string())?;
-    deepcode_runtime::start_runtime(&app_handle, &mut guard, StartRuntimeInput { project_root, binary_path })
+    deepcode_runtime::start_runtime(app_handle, &mut guard, StartRuntimeInput { project_root, binary_path })
 }
 
 #[tauri::command]
