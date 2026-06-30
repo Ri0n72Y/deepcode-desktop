@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { HeadlessEvent, PromptInput, RuntimeClient, RuntimeStatus, SessionMessage } from "./types";
 
 type RuntimeProxyFailure = {
@@ -13,10 +14,19 @@ type RuntimePromptResponse = {
 export class TauriRuntimeClient implements RuntimeClient {
   private readonly listeners = new Set<(event: HeadlessEvent) => void>();
   private requestCounter = 0;
+  private runtimeUnlistenPromise: Promise<UnlistenFn> | undefined;
 
   subscribe(listener: (event: HeadlessEvent) => void): () => void {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    this.ensureRuntimeEventBridge();
+    return () => {
+      this.listeners.delete(listener);
+      if (this.listeners.size === 0) {
+        const unlistenPromise = this.runtimeUnlistenPromise;
+        this.runtimeUnlistenPromise = undefined;
+        void unlistenPromise?.then((unlisten) => unlisten());
+      }
+    };
   }
 
   async startRuntime(projectRoot?: string): Promise<RuntimeStatus> {
@@ -72,14 +82,14 @@ export class TauriRuntimeClient implements RuntimeClient {
       const response = await this.request<RuntimePromptResponse | RuntimeProxyFailure>("/prompt", "POST", input);
       if (isProxyFailure(response)) {
         this.emitAssistantError(requestId, response.error);
+        this.emit({ type: "loading", requestId, value: false, status: "error" });
         return { requestId };
       }
       return { requestId: typeof response.requestId === "string" ? response.requestId : requestId };
     } catch (error) {
       this.emitAssistantError(requestId, errorToMessage(error));
+      this.emit({ type: "loading", requestId, value: false, status: "error" });
       return { requestId };
-    } finally {
-      this.emit({ type: "loading", requestId, value: false, status: "completed" });
     }
   }
 
@@ -98,6 +108,15 @@ export class TauriRuntimeClient implements RuntimeClient {
 
   private async request<T = unknown>(route: string, method: "GET" | "POST", body?: unknown): Promise<T> {
     return await invoke<T>("deepcode_request", { route, method, body });
+  }
+
+  private ensureRuntimeEventBridge(): void {
+    if (this.runtimeUnlistenPromise) {
+      return;
+    }
+    this.runtimeUnlistenPromise = listen<HeadlessEvent>("deepcode-runtime-event", (event) => {
+      this.emit(event.payload);
+    });
   }
 
   private emitRuntimeStatus(status: RuntimeStatus): void {
