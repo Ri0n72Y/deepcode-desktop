@@ -95,6 +95,6 @@ function resolveProjectName(
 }
 
 function shortProjectName(value: string): string {
-  const normalized = value.replaceAll("\\", "/");
+  const normalized = value.replace(/\\/g, "/");
   return normalized.split("/").filter(Boolean).pop() || value;
 }
