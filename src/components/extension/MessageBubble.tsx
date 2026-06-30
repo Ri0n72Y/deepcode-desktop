@@ -240,10 +240,11 @@ function firstString(source: Record<string, unknown> | null, keys: string[]): st
 
 function parseSkillName(content: string | null): string | null {
   if (!content) return null;
-  const nameLine = content
-    .split("\n")
-    .find((line) => line.trim().startsWith("name:"));
-  return nameLine?.replace(/^\s*name:\s*/u, "").trim() || null;
+  const lines = content.split("\n");
+  const nameLine = lines.find((line) => line.trim().startsWith("name:"));
+  if (nameLine) return nameLine.replace(/^\s*name:\s*/u, "").trim() || null;
+  const headingLine = lines.find((line) => /^#\s+/.test(line.trim()));
+  return headingLine?.replace(/^#\s+/u, "").trim() || null;
 }
 
 function summarizePlainText(content: string | null): string | null {
