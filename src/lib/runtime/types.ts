@@ -69,6 +69,7 @@ export type SessionMessage = {
   updateTime?: string;
   shouldConnect?: boolean;
   meta?: Record<string, unknown>;
+  messageParams?: Record<string, unknown> | null;
 };
 
 export type ModelOption = {
