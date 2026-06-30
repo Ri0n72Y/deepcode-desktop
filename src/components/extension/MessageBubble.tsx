@@ -164,7 +164,7 @@ function CollapsibleBubble({
           >
             <span className={cn("bubble-dot", dotClass)} />
             <span className="bubble-title">
-              <span className="bubble-title-text">
+              <span className="bubble-title-text whitespace-nowrap">
                 {labelBold ? <b>{label}</b> : <span>{label}</span>}
                 {params ? <span className="tool-params">{params}</span> : null}
               </span>
