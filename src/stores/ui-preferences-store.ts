@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 type UiPreferencesState = {
   showSkills: boolean;
@@ -7,9 +8,14 @@ type UiPreferencesState = {
   setShowTools: (value: boolean) => void;
 };
 
-export const useUiPreferencesStore = create<UiPreferencesState>((set) => ({
-  showSkills: false,
-  showTools: true,
-  setShowSkills: (value) => set({ showSkills: value }),
-  setShowTools: (value) => set({ showTools: value }),
-}));
+export const useUiPreferencesStore = create<UiPreferencesState>()(
+  persist(
+    (set) => ({
+      showSkills: true,
+      showTools: true,
+      setShowSkills: (value) => set({ showSkills: value }),
+      setShowTools: (value) => set({ showTools: value }),
+    }),
+    { name: "deepcode-ui-preferences" },
+  ),
+);
