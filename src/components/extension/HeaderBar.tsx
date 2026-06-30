@@ -66,7 +66,7 @@ function resolveProjectName(
   const activeProject = currentSessionId
     ? projects.find((project) => project.sessions.some((session) => session.id === currentSessionId))
     : null;
-  const path = activeProject?.originalPath ?? runtimeProjectRoot;
+  const path = activeProject?.originalPath ?? activeProject?.projectCode ?? runtimeProjectRoot;
   return path ? shortProjectName(path) : null;
 }
 
