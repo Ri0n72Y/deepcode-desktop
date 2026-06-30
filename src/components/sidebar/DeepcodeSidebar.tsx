@@ -1,10 +1,12 @@
 import { Button, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { Bars3Icon, ChevronRightIcon, Cog6ToothIcon, FolderIcon, PlusIcon, QueueListIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import { useRuntimeClient } from "../../app/providers";
 import DeepcodeIcon from "../brand/DeepcodeIcon";
 import { loadStaticSession } from "../../lib/deepcode-static/load-static-session";
-import { startStaticChat } from "../../lib/deepcode-static/start-static-chat";
 import type { StaticProjectHistory, StaticSessionSummary } from "../../lib/deepcode-static/types";
+import type { SessionSummary } from "../../lib/runtime/types";
+import { useRuntimeStore } from "../../stores/runtime-store";
 import { useSessionStore } from "../../stores/session-store";
 import { useStaticHistoryStore } from "../../stores/static-history-store";
 import { cn } from "../../lib/utils/cn";
@@ -14,16 +16,23 @@ type DeepcodeSidebarProps = {
 };
 
 export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps) {
+  const client = useRuntimeClient();
   const history = useStaticHistoryStore((state) => state.history);
+  const liveSessions = useSessionStore((state) => state.list);
   const activeId = useSessionStore((state) => state.current);
+  const runtimeProjectRoot = useRuntimeStore((state) => state.projectRoot);
   const [collapsed, setCollapsed] = useState(true);
 
-  function createNewChat() {
-    startStaticChat();
+  async function createNewChat() {
+    await client?.createNewSession();
   }
 
-  async function selectSession(session: StaticSessionSummary) {
+  async function selectStaticSession(session: StaticSessionSummary) {
     await loadStaticSession(session.id);
+  }
+
+  async function selectLiveSession(session: SessionSummary) {
+    await client?.selectSession(session.id);
   }
 
   return (
@@ -37,7 +46,7 @@ export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps
       </div>
 
       <div className="sidebar-actions">
-        <Button className="sidebar-primary-action" onClick={createNewChat} aria-label="New Chat">
+        <Button className="sidebar-primary-action" onClick={() => void createNewChat()} aria-label="New Chat">
           <PlusIcon className="sidebar-action-icon" />
           {!collapsed && <span className="whitespace-nowrap">New Chat</span>}
         </Button>
@@ -48,8 +57,16 @@ export default function DeepcodeSidebar({ onOpenSettings }: DeepcodeSidebarProps
           <QueueListIcon className="sidebar-section-icon" />
           <span>History</span>
         </div>
+        {liveSessions.length > 0 ? (
+          <LiveProjectGroup
+            activeId={activeId}
+            name={runtimeProjectRoot || "Current workspace"}
+            sessions={liveSessions}
+            onSelect={(session) => void selectLiveSession(session)}
+          />
+        ) : null}
         {(history?.projects ?? []).map((project) => (
-          <ProjectGroup key={`${project.projectCode}-${activeId ?? "none"}`} activeId={activeId} project={project} onSelect={(session) => void selectSession(session)} />
+          <ProjectGroup key={`${project.projectCode}-${activeId ?? "none"}`} activeId={activeId} project={project} onSelect={(session) => void selectStaticSession(session)} />
         ))}
       </nav>
 
@@ -74,6 +91,35 @@ function ProjectGroup({ project, activeId, onSelect }: ProjectGroupProps) {
   const sessions = project.sessions;
   const isActiveProject = sessions.some((session) => session.id === activeId);
 
+  return (
+    <Disclosure defaultOpen={isActiveProject}>
+      {({ open }) => (
+        <div className="sidebar-project-group">
+          <DisclosureButton className="sidebar-project-button">
+            <ChevronRightIcon className={cn("sidebar-project-chevron", open && "open")} />
+            <FolderIcon className="sidebar-section-icon" />
+            <span className="sidebar-project-name" title={name}>{shortProjectName(name)}</span>
+          </DisclosureButton>
+          <DisclosurePanel className="sidebar-session-list">
+            {sessions.map((session) => (
+              <Button
+                className={cn("sidebar-session-item", session.id === activeId && "active")}
+                key={session.id}
+                onClick={() => onSelect(session)}
+              >
+                <span className="sidebar-session-title">{session.summary || "Untitled session"}</span>
+                <span className="sidebar-session-meta">{formatSessionTime(session.updateTime)}</span>
+              </Button>
+            ))}
+          </DisclosurePanel>
+        </div>
+      )}
+    </Disclosure>
+  );
+}
+
+function LiveProjectGroup({ activeId, name, sessions, onSelect }: { activeId: string | null; name: string; sessions: SessionSummary[]; onSelect: (session: SessionSummary) => void }) {
+  const isActiveProject = sessions.some((session) => session.id === activeId);
   return (
     <Disclosure defaultOpen={isActiveProject}>
       {({ open }) => (
