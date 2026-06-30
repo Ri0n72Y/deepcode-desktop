@@ -12,10 +12,20 @@ export default function MessageBubble({ message }: { message: SessionMessage }) 
   }
 
   if (message.role === "assistant") {
+    if (isThinkingMessage(message)) {
+      return (
+        <CollapsibleBubble
+          dotClass={cn("system-dot", message.shouldConnect && "connect-to-prev")}
+          title="thinking"
+        >
+          {getThinkingContent(message)}
+        </CollapsibleBubble>
+      );
+    }
     return <AssistantBubble message={message} />;
   }
 
-  const title = message.role === "system" ? "Skills" : "tool";
+  const title = message.role === "system" ? "skills" : buildToolTitle(message);
   return (
     <CollapsibleBubble
       dotClass={cn(
@@ -40,7 +50,7 @@ function UserBubble({ content }: { content: string }) {
       {({ open }) => (
         <>
           <div className="user-bubble-content">{open ? content : lines.slice(0, COLLAPSE_LINE_LIMIT).join("\n")}</div>
-          <DisclosureButton className="bubble-expand-button">{open ? "收起" : "展开"}</DisclosureButton>
+          <DisclosureButton className="bubble-expand-button">{open ? "Collapse" : "Expand"}</DisclosureButton>
         </>
       )}
     </Disclosure>
@@ -99,4 +109,58 @@ function CollapsibleBubble({ title, dotClass, children }: { title: string; dotCl
       )}
     </Disclosure>
   );
+}
+
+function isThinkingMessage(message: SessionMessage): boolean {
+  return Boolean(message.meta?.asThinking || getNestedString(message, ["messageParams", "reasoning_content"]));
+}
+
+function getThinkingContent(message: SessionMessage): string {
+  return getNestedString(message, ["messageParams", "reasoning_content"]) ?? message.content ?? "";
+}
+
+function buildToolTitle(message: SessionMessage): string {
+  const toolName =
+    getNestedString(message, ["meta", "function", "name"]) ??
+    getNestedString(message, ["messageParams", "tool_name"]) ??
+    parseToolName(message.content);
+  const summary = summarizeToolContent(message.content);
+  return ["tool", toolName, summary].filter(Boolean).join(" · ");
+}
+
+function parseToolName(content: string | null): string | null {
+  const parsed = parseJsonObject(content);
+  return typeof parsed?.name === "string" ? parsed.name : null;
+}
+
+function summarizeToolContent(content: string | null): string | null {
+  const parsed = parseJsonObject(content);
+  if (!parsed) return null;
+  const status = parsed.ok === true ? "ok" : parsed.ok === false ? "failed" : null;
+  const output = typeof parsed.output === "string" ? parsed.output.trim().split("\n")[0] : null;
+  const summary = output ? truncate(output, 72) : status;
+  return summary && summary !== parseToolName(content) ? summary : null;
+}
+
+function parseJsonObject(content: string | null): Record<string, unknown> | null {
+  if (!content) return null;
+  try {
+    const parsed = JSON.parse(content) as unknown;
+    return parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : null;
+  } catch {
+    return null;
+  }
+}
+
+function getNestedString(source: unknown, path: string[]): string | null {
+  let current = source;
+  for (const key of path) {
+    if (current === null || typeof current !== "object" || !(key in current)) return null;
+    current = (current as Record<string, unknown>)[key];
+  }
+  return typeof current === "string" && current.trim() ? current : null;
+}
+
+function truncate(value: string, limit: number): string {
+  return value.length > limit ? `${value.slice(0, limit - 3)}...` : value;
 }
