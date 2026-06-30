@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { dispatchRuntimeEvent } from "../lib/runtime/event-dispatcher";
-import { MockRuntimeClient } from "../lib/runtime/mock-runtime-client";
+import { createRuntimeClient } from "../lib/runtime/runtime-client";
 import type { RuntimeClient } from "../lib/runtime/types";
 
 const RuntimeClientContext = createContext<RuntimeClient | undefined>(undefined);
@@ -10,13 +10,17 @@ type RuntimeProviderProps = {
 };
 
 export function RuntimeProvider({ children }: RuntimeProviderProps) {
-  const client = useMemo(() => new MockRuntimeClient(), []);
+  const client = useMemo(() => createRuntimeClient(), []);
 
   useEffect(() => {
     const unsubscribe = client.subscribe(dispatchRuntimeEvent);
     async function boot() {
-      await client.startRuntime();
-      await client.ready();
+      try {
+        await client.startRuntime();
+        await client.ready();
+      } catch (error) {
+        dispatchRuntimeEvent({ type: "error", error: error instanceof Error ? error.message : String(error) });
+      }
     }
     void boot();
     return unsubscribe;
