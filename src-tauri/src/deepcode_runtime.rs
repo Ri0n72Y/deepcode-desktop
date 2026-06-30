@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::env;
 use std::io::{BufRead, BufReader};
 use std::net::TcpListener;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
