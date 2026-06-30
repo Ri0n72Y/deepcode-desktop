@@ -19,7 +19,7 @@ export default function HeaderBar() {
   const [open, setOpen] = useState(false);
   const active = sessions.find((item) => item.id === current);
   const title = active?.summary ?? inferConversationTitle(messages) ?? "New Conversation";
-  const projectName = useMemo(
+  const workspaceName = useMemo(
     () => resolveProjectName(history?.projects ?? [], current, runtimeProjectRoot),
     [current, history?.projects, runtimeProjectRoot],
   );
@@ -37,8 +37,8 @@ export default function HeaderBar() {
         >
           <span className="session-logo" aria-hidden="true"><DeepcodeIcon className="session-logo-icon" /></span>
           <span className="session-selector-title">
+            {workspaceName ? <WorkspaceBadge name={workspaceName} /> : null}
             <span className="session-title-text">{title}</span>
-            {projectName ? <span className="session-project-text">{projectName}</span> : null}
           </span>
           <ChevronDownIcon className="session-selector-icon" />
         </Button>
@@ -48,6 +48,30 @@ export default function HeaderBar() {
         <PlusIcon className="header-new-icon" />
       </Button>
     </header>
+  );
+}
+
+function WorkspaceBadge({ name }: { name: string }) {
+  return (
+    <span
+      className="session-workspace-badge"
+      title={name}
+      style={{
+        border: "1px solid color-mix(in srgb, var(--vscode-focusBorder) 65%, transparent)",
+        color: "var(--vscode-focusBorder)",
+        background: "color-mix(in srgb, var(--vscode-focusBorder) 14%, transparent)",
+        borderRadius: 4,
+        padding: "1px 6px",
+        maxWidth: 120,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+        fontSize: 12,
+      }}
+    >
+      {name}
+    </span>
   );
 }
 
