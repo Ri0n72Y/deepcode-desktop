@@ -9,8 +9,6 @@ import ComposerView from "./ComposerView";
 import MessageBubble from "./MessageBubble";
 import ThinkingBubble from "./ThinkingBubble";
 
-const INITIAL_RENDERED_MESSAGE_LIMIT = 120;
-const LOAD_PREVIOUS_MESSAGE_CHUNK = 80;
 const TOP_LOAD_THRESHOLD_PX = 24;
 
 export default function ChatContainerView() {
@@ -22,10 +20,10 @@ export default function ChatContainerView() {
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const scrollHeightBeforePrependRef = useRef<number | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
-  const [renderedCount, setRenderedCount] = useState(() => Math.min(messages.length, INITIAL_RENDERED_MESSAGE_LIMIT));
+  const [renderedStartIndex, setRenderedStartIndex] = useState(() => getLastUserTurnStartIndex(messages));
   const renderedMessages = useMemo(
-    () => messages.slice(Math.max(0, messages.length - renderedCount)),
-    [messages, renderedCount],
+    () => messages.slice(Math.min(renderedStartIndex, messages.length)),
+    [messages, renderedStartIndex],
   );
   const visibleTimelineMessages = useMemo(
     () => renderedMessages.filter((message) => !isTimelineMessageHidden(message, showSkills, showTools)),
@@ -34,13 +32,17 @@ export default function ChatContainerView() {
   const lastVisibleMessage = visibleTimelineMessages[visibleTimelineMessages.length - 1];
 
   useEffect(() => {
-    setRenderedCount(Math.min(messages.length, INITIAL_RENDERED_MESSAGE_LIMIT));
+    setRenderedStartIndex(getLastUserTurnStartIndex(messages));
     setIsAtBottom(true);
   }, [activeSessionId]);
 
   useEffect(() => {
-    setRenderedCount((current) => Math.min(messages.length, Math.max(current, Math.min(messages.length, INITIAL_RENDERED_MESSAGE_LIMIT))));
-  }, [messages.length]);
+    setRenderedStartIndex((current) => {
+      if (messages.length === 0) return 0;
+      if (current >= messages.length) return getLastUserTurnStartIndex(messages);
+      return current;
+    });
+  }, [messages]);
 
   useLayoutEffect(() => {
     const previousScrollHeight = scrollHeightBeforePrependRef.current;
@@ -67,9 +69,9 @@ export default function ChatContainerView() {
     const distance = element.scrollHeight - element.scrollTop - element.clientHeight;
     setIsAtBottom(distance < 24);
 
-    if (element.scrollTop <= TOP_LOAD_THRESHOLD_PX && renderedCount < messages.length) {
+    if (element.scrollTop <= TOP_LOAD_THRESHOLD_PX && renderedStartIndex > 0) {
       scrollHeightBeforePrependRef.current = element.scrollHeight;
-      setRenderedCount((current) => Math.min(messages.length, current + LOAD_PREVIOUS_MESSAGE_CHUNK));
+      setRenderedStartIndex((current) => getPreviousUserTurnStartIndex(messages, current));
     }
   }
 
@@ -94,6 +96,23 @@ export default function ChatContainerView() {
       <ComposerView />
     </section>
   );
+}
+
+function getLastUserTurnStartIndex(messages: SessionMessage[]): number {
+  const lastUserIndex = findPreviousUserIndex(messages, messages.length);
+  return lastUserIndex >= 0 ? lastUserIndex : 0;
+}
+
+function getPreviousUserTurnStartIndex(messages: SessionMessage[], currentStartIndex: number): number {
+  const previousUserIndex = findPreviousUserIndex(messages, currentStartIndex);
+  return previousUserIndex >= 0 ? previousUserIndex : 0;
+}
+
+function findPreviousUserIndex(messages: SessionMessage[], beforeIndex: number): number {
+  for (let index = Math.min(beforeIndex, messages.length) - 1; index >= 0; index -= 1) {
+    if (messages[index]?.role === "user") return index;
+  }
+  return -1;
 }
 
 function isTimelineMessageHidden(message: SessionMessage, showSkills: boolean, showTools: boolean): boolean {
