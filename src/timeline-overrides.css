@@ -1,0 +1,8 @@
+.messages { gap: 0; }
+.bubble { --timeline-dot-center-x: 20px; --timeline-dot-center-y: 18px; --timeline-dot-radius: 4px; isolation: isolate; }
+.bubble.assistant { --timeline-dot-center-y: 14px; }
+.bubble-dot.connect-to-prev::before { display: none !important; }
+.bubble.timeline-connect-prev::before, .bubble.timeline-connect-next::after { content: ""; position: absolute; left: var(--timeline-dot-center-x); width: 1px; background: var(--vscode-panel-border); z-index: 1; }
+.bubble.timeline-connect-prev::before { top: 0; height: calc(var(--timeline-dot-center-y) - var(--timeline-dot-radius)); }
+.bubble.timeline-connect-next::after { top: calc(var(--timeline-dot-center-y) + var(--timeline-dot-radius)); bottom: 0; }
+.bubble-dot { z-index: 3; }
