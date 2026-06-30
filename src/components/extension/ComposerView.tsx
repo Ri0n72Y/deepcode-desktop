@@ -18,7 +18,7 @@ export default function ComposerView() {
   const [text, setText] = useState("");
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const rows = useMemo(() => Math.max(1, Math.min(6, text.split("\n").length)), [text]);
+  const rows = useMemo(() => Math.max(3, Math.min(10, text.split("\n").length)), [text]);
 
   async function submit() {
     const prompt = text.trim();
@@ -54,7 +54,7 @@ export default function ComposerView() {
               void submit();
             }
           }}
-          placeholder="Ask Deep Code"
+          placeholder="Write a prompt..."
           rows={fullscreen ? 12 : rows}
           value={text}
         />
