@@ -19,12 +19,17 @@ const SUMMARY_LIMIT = 96;
 
 export default function MessageBubble({
   message,
+  connectToNext,
   connectToPrevious,
 }: {
   message: SessionMessage;
+  connectToNext?: boolean;
   connectToPrevious?: boolean;
 }) {
-  const shouldConnect = Boolean(connectToPrevious || message.shouldConnect);
+  const timelineClassName = cn(
+    connectToPrevious && "timeline-connect-prev",
+    connectToNext && "timeline-connect-next",
+  );
 
   if (message.role === "user") {
     return <UserBubble content={message.content ?? ""} />;
@@ -35,7 +40,8 @@ export default function MessageBubble({
       const thinkingContent = getThinkingContent(message);
       return (
         <CollapsibleBubble
-          dotClass={cn(shouldConnect && "connect-to-prev")}
+          className={timelineClassName}
+          dotClass=""
           label="Thinking"
           params={summarizePlainText(thinkingContent)}
         >
@@ -43,7 +49,7 @@ export default function MessageBubble({
         </CollapsibleBubble>
       );
     }
-    return <AssistantBubble message={message} shouldConnect={shouldConnect} />;
+    return <AssistantBubble className={timelineClassName} message={message} />;
   }
 
   if (message.role === "system") {
@@ -53,7 +59,8 @@ export default function MessageBubble({
       "Unknown Skill";
     return (
       <CollapsibleBubble
-        dotClass={cn("system-dot", shouldConnect && "connect-to-prev")}
+        className={timelineClassName}
+        dotClass="system-dot"
         label="Skills"
         labelBold
         params={skillName}
@@ -66,8 +73,9 @@ export default function MessageBubble({
   const tool = parseToolMessage(message);
   return (
     <CollapsibleBubble
+      className={timelineClassName}
       defaultOpen={tool.autoExpand}
-      dotClass={cn(tool.ok ? "success" : "error", shouldConnect && "connect-to-prev")}
+      dotClass={tool.ok ? "success" : "error"}
       label={capitalizeLabel(tool.name)}
       labelBold
       params={tool.paramsMd}
@@ -99,7 +107,7 @@ function UserBubble({ content }: { content: string }) {
   );
 }
 
-function AssistantBubble({ message, shouldConnect }: { message: SessionMessage; shouldConnect: boolean }) {
+function AssistantBubble({ className, message }: { className: string; message: SessionMessage }) {
   const [copied, setCopied] = useState(false);
   const content = message.content ?? "";
 
@@ -114,8 +122,8 @@ function AssistantBubble({ message, shouldConnect }: { message: SessionMessage; 
   }
 
   return (
-    <div className="bubble assistant">
-      <span className={cn("bubble-dot", shouldConnect && "connect-to-prev")} />
+    <div className={cn("bubble assistant", className)}>
+      <span className="bubble-dot" />
       <div className="bubble-normal-content">{content}</div>
       <Button
         className="bubble-copy-btn"
@@ -134,6 +142,7 @@ function AssistantBubble({ message, shouldConnect }: { message: SessionMessage; 
 }
 
 function CollapsibleBubble({
+  className,
   label,
   params,
   labelBold,
@@ -141,6 +150,7 @@ function CollapsibleBubble({
   defaultOpen,
   children,
 }: {
+  className: string;
   label: string;
   params: string | null;
   labelBold?: boolean;
@@ -149,7 +159,7 @@ function CollapsibleBubble({
   children: ReactNode;
 }) {
   return (
-    <Disclosure as="div" className="bubble tool" defaultOpen={defaultOpen}>
+    <Disclosure as="div" className={cn("bubble tool", className)} defaultOpen={defaultOpen}>
       {({ open }) => (
         <>
           <DisclosureButton
