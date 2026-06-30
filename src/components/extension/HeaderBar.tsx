@@ -1,8 +1,8 @@
 import { Button } from "@headlessui/react";
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { useMemo, useState } from "react";
+import { useRuntimeClient } from "../../app/providers";
 import DeepcodeIcon from "../brand/DeepcodeIcon";
-import { startStaticChat } from "../../lib/deepcode-static/start-static-chat";
 import { cn } from "../../lib/utils/cn";
 import { useChatStore } from "../../stores/chat-store";
 import { useRuntimeStore } from "../../stores/runtime-store";
@@ -11,6 +11,7 @@ import { useStaticHistoryStore } from "../../stores/static-history-store";
 import SessionDropdown from "./SessionDropdown";
 
 export default function HeaderBar() {
+  const client = useRuntimeClient();
   const sessions = useSessionStore((state) => state.list);
   const current = useSessionStore((state) => state.current);
   const messages = useChatStore((state) => state.messages);
@@ -23,6 +24,10 @@ export default function HeaderBar() {
     () => resolveProjectName(history?.projects ?? [], current, runtimeProjectRoot),
     [current, history?.projects, runtimeProjectRoot],
   );
+
+  async function createNewChat() {
+    await client?.createNewSession();
+  }
 
   return (
     <header className="header-container">
@@ -44,7 +49,7 @@ export default function HeaderBar() {
         </Button>
         <SessionDropdown open={open} onClose={() => setOpen(false)} />
       </div>
-      <Button className="header-new-btn" title="New Chat" type="button" onClick={startStaticChat}>
+      <Button className="header-new-btn" title="New Chat" type="button" onClick={() => void createNewChat()}>
         <PlusIcon className="header-new-icon" />
       </Button>
     </header>
