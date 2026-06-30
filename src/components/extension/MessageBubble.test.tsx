@@ -19,11 +19,12 @@ describe("MessageBubble", () => {
   });
 
   it("keeps tool details collapsed by default", () => {
-    render(<MessageBubble message={{ id: "m2", role: "tool", content: JSON.stringify({ ok: true, name: "bash", output: "tool output" }) }} />);
+    const content = JSON.stringify({ ok: true, name: "bash", output: "tool output" });
+    render(<MessageBubble message={{ id: "m2", role: "tool", content }} />);
 
     expect(screen.queryByText("tool output")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("Toggle bash details"));
-    expect(screen.getByText("tool output")).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Toggle Bash details"));
+    expect(screen.getByText(/tool output/)).toBeInTheDocument();
   });
 
   it("collapses long user prompts", () => {
