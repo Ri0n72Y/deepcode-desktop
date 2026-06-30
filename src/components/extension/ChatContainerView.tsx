@@ -11,6 +11,11 @@ import ThinkingBubble from "./ThinkingBubble";
 
 const TOP_LOAD_THRESHOLD_PX = 24;
 
+type TimelineConnectivity = {
+  connectToPrevious: boolean;
+  connectToNext: boolean;
+};
+
 export default function ChatContainerView() {
   const messages = useChatStore((state) => state.messages);
   const activeSessionId = useChatStore((state) => state.activeSessionId);
@@ -28,6 +33,10 @@ export default function ChatContainerView() {
   const visibleTimelineMessages = useMemo(
     () => renderedMessages.filter((message) => !isTimelineMessageHidden(message, showSkills, showTools)),
     [renderedMessages, showSkills, showTools],
+  );
+  const timelineConnectivity = useMemo(
+    () => buildTimelineConnectivity(visibleTimelineMessages),
+    [visibleTimelineMessages],
   );
   const lastVisibleMessage = visibleTimelineMessages[visibleTimelineMessages.length - 1];
 
@@ -78,11 +87,16 @@ export default function ChatContainerView() {
   return (
     <section className="chat-container">
       <div className="messages" onScroll={updateScrollState} ref={messagesRef}>
-        {renderedMessages.map((message, index) => {
+        {renderedMessages.map((message) => {
           const hidden = isTimelineMessageHidden(message, showSkills, showTools);
+          const connectivity = timelineConnectivity.get(message.id);
           return (
             <div key={message.id} aria-hidden={hidden} style={{ display: hidden ? "none" : undefined }}>
-              <MessageBubble connectToPrevious={index > 0 && message.role !== "user"} message={message} />
+              <MessageBubble
+                connectToNext={connectivity?.connectToNext ?? false}
+                connectToPrevious={connectivity?.connectToPrevious ?? false}
+                message={message}
+              />
             </div>
           );
         })}
@@ -96,6 +110,21 @@ export default function ChatContainerView() {
       <ComposerView />
     </section>
   );
+}
+
+function buildTimelineConnectivity(messages: SessionMessage[]): Map<string, TimelineConnectivity> {
+  const connectivity = new Map<string, TimelineConnectivity>();
+  for (let index = 0; index < messages.length; index += 1) {
+    const message = messages[index];
+    if (!message || message.role === "user") continue;
+    const previous = messages[index - 1];
+    const next = messages[index + 1];
+    connectivity.set(message.id, {
+      connectToPrevious: Boolean(previous && previous.role !== "user"),
+      connectToNext: Boolean(next && next.role !== "user"),
+    });
+  }
+  return connectivity;
 }
 
 function getLastUserTurnStartIndex(messages: SessionMessage[]): number {
