@@ -16,14 +16,19 @@ export default function ChatContainerView() {
   const showTools = useUiPreferencesStore((state) => state.showTools);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
-  const visibleMessages = useMemo(
-    () => optimizeVisibleMessages(filterTimelineMessages(messages, showSkills, showTools)),
-    [messages, showSkills, showTools],
+  const timelineMessages = useMemo(
+    () => optimizeTimelineMessages(messages),
+    [messages],
   );
+  const visibleTimelineMessages = useMemo(
+    () => timelineMessages.filter((message) => !isTimelineMessageHidden(message, showSkills, showTools)),
+    [timelineMessages, showSkills, showTools],
+  );
+  const lastVisibleMessage = visibleTimelineMessages[visibleTimelineMessages.length - 1];
 
   useEffect(() => {
     scrollToBottom("auto");
-  }, [visibleMessages.length, loading]);
+  }, [visibleTimelineMessages.length, loading]);
 
   function scrollToBottom(behavior: ScrollBehavior = "smooth") {
     const element = messagesRef.current;
@@ -41,10 +46,15 @@ export default function ChatContainerView() {
   return (
     <section className="chat-container">
       <div className="messages" onScroll={updateScrollState} ref={messagesRef}>
-        {visibleMessages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
-        {loading ? <ThinkingBubble shouldConnect={visibleMessages.length > 0 && visibleMessages[visibleMessages.length - 1]?.role !== "user"} /> : null}
+        {timelineMessages.map((message) => {
+          const hidden = isTimelineMessageHidden(message, showSkills, showTools);
+          return (
+            <div key={message.id} aria-hidden={hidden} style={{ display: hidden ? "none" : undefined }}>
+              <MessageBubble message={message} />
+            </div>
+          );
+        })}
+        {loading ? <ThinkingBubble shouldConnect={visibleTimelineMessages.length > 0 && lastVisibleMessage?.role !== "user"} /> : null}
       </div>
       {!isAtBottom ? (
         <Button className="scroll-bottom-button" onClick={() => scrollToBottom()} type="button" aria-label="Scroll to bottom">
@@ -56,19 +66,17 @@ export default function ChatContainerView() {
   );
 }
 
-function filterTimelineMessages(messages: SessionMessage[], showSkills: boolean, showTools: boolean): SessionMessage[] {
-  return messages.filter((message) => {
-    if (!showTools && message.role === "tool") return false;
-    if (!showSkills && message.role === "system" && isSkillMessage(message)) return false;
-    return true;
-  });
+function isTimelineMessageHidden(message: SessionMessage, showSkills: boolean, showTools: boolean): boolean {
+  if (!showTools && message.role === "tool") return true;
+  if (!showSkills && message.role === "system" && isSkillMessage(message)) return true;
+  return false;
 }
 
 function isSkillMessage(message: SessionMessage): boolean {
   return Boolean(message.meta && "skill" in message.meta);
 }
 
-function optimizeVisibleMessages<T extends { role: string; content: string | null }>(messages: T[]): T[] {
+function optimizeTimelineMessages<T extends { role: string; content: string | null }>(messages: T[]): T[] {
   const totalLines = messages.reduce((sum, message) => sum + (message.content?.split("\n").length ?? 0), 0);
   if (messages.length <= 50 && totalLines <= 200) return messages;
   const lastUserIndex = messages.map((message) => message.role).lastIndexOf("user");
