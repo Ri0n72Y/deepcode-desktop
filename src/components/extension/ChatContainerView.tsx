@@ -36,7 +36,7 @@ export default function ChatContainerView() {
   useEffect(() => {
     setRenderedCount(Math.min(messages.length, INITIAL_RENDERED_MESSAGE_LIMIT));
     setIsAtBottom(true);
-  }, [activeSessionId]);
+  }, [activeSessionId, messages.length]);
 
   useEffect(() => {
     setRenderedCount((current) => Math.min(messages.length, Math.max(current, Math.min(messages.length, INITIAL_RENDERED_MESSAGE_LIMIT))));
@@ -76,11 +76,11 @@ export default function ChatContainerView() {
   return (
     <section className="chat-container">
       <div className="messages" onScroll={updateScrollState} ref={messagesRef}>
-        {renderedMessages.map((message) => {
+        {renderedMessages.map((message, index) => {
           const hidden = isTimelineMessageHidden(message, showSkills, showTools);
           return (
             <div key={message.id} aria-hidden={hidden} style={{ display: hidden ? "none" : undefined }}>
-              <MessageBubble message={message} />
+              <MessageBubble connectToPrevious={index > 0 && message.role !== "user"} message={message} />
             </div>
           );
         })}
