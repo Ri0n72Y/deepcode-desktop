@@ -6,7 +6,8 @@ import {
 } from "@headlessui/react";
 import {
   CheckIcon,
-  ChevronRightIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
 import { useState, type ReactNode } from "react";
@@ -18,9 +19,13 @@ const SUMMARY_LIMIT = 96;
 
 export default function MessageBubble({
   message,
+  connectToPrevious,
 }: {
   message: SessionMessage;
+  connectToPrevious?: boolean;
 }) {
+  const shouldConnect = Boolean(connectToPrevious || message.shouldConnect);
+
   if (message.role === "user") {
     return <UserBubble content={message.content ?? ""} />;
   }
@@ -30,35 +35,50 @@ export default function MessageBubble({
       const thinkingContent = getThinkingContent(message);
       return (
         <CollapsibleBubble
-          dotClass={cn(
-            "system-dot",
-            message.shouldConnect && "connect-to-prev",
-          )}
+          contentClassName="collapsed"
+          dotClass={cn(shouldConnect && "connect-to-prev")}
           label="Thinking"
-          summary={summarizePlainText(thinkingContent)}
+          params={summarizePlainText(thinkingContent)}
         >
           {thinkingContent}
         </CollapsibleBubble>
       );
     }
-    return <AssistantBubble message={message} />;
+    return <AssistantBubble message={message} shouldConnect={shouldConnect} />;
   }
 
-  const label = message.role === "system" ? "Skill" : "Tool";
-  const summary =
-    message.role === "system"
-      ? summarizeSkillMessage(message)
-      : summarizeToolMessage(message);
+  if (message.role === "system") {
+    const skillName =
+      getNestedString(message, ["meta", "skill", "name"]) ??
+      parseSkillName(message.content) ??
+      "Unknown Skill";
+    const skillDescription =
+      getNestedString(message, ["meta", "skill", "description"]) ??
+      message.content ??
+      "";
+    return (
+      <CollapsibleBubble
+        contentClassName="collapsed"
+        dotClass={cn("system-dot", shouldConnect && "connect-to-prev")}
+        label="Skills"
+        labelBold
+        params={skillName}
+      >
+        {skillDescription}
+      </CollapsibleBubble>
+    );
+  }
+
+  const tool = parseToolMessage(message);
   return (
     <CollapsibleBubble
-      dotClass={cn(
-        message.role === "tool" ? "success" : "system-dot",
-        message.shouldConnect && "connect-to-prev",
-      )}
-      label={label}
-      summary={summary}
+      contentClassName={tool.autoExpand ? undefined : "collapsed"}
+      dotClass={cn(tool.ok ? "success" : "error", shouldConnect && "connect-to-prev")}
+      label={tool.name}
+      labelBold
+      params={tool.paramsMd}
     >
-      {message.content}
+      {tool.displayContent}
     </CollapsibleBubble>
   );
 }
@@ -85,7 +105,7 @@ function UserBubble({ content }: { content: string }) {
   );
 }
 
-function AssistantBubble({ message }: { message: SessionMessage }) {
+function AssistantBubble({ message, shouldConnect }: { message: SessionMessage; shouldConnect: boolean }) {
   const [copied, setCopied] = useState(false);
   const content = message.content ?? "";
 
@@ -101,9 +121,7 @@ function AssistantBubble({ message }: { message: SessionMessage }) {
 
   return (
     <div className="bubble assistant">
-      <span
-        className={cn("bubble-dot", message.shouldConnect && "connect-to-prev")}
-      />
+      <span className={cn("bubble-dot", shouldConnect && "connect-to-prev")} />
       <div className="bubble-normal-content">{content}</div>
       <Button
         className="bubble-copy-btn"
@@ -123,13 +141,17 @@ function AssistantBubble({ message }: { message: SessionMessage }) {
 
 function CollapsibleBubble({
   label,
-  summary,
+  params,
+  labelBold,
   dotClass,
+  contentClassName,
   children,
 }: {
   label: string;
-  summary: string | null;
+  params: string | null;
+  labelBold?: boolean;
   dotClass: string;
+  contentClassName?: string;
   children: ReactNode;
 }) {
   return (
@@ -143,27 +165,13 @@ function CollapsibleBubble({
             <span className={cn("bubble-dot", dotClass)} />
             <span className="bubble-title">
               <span className="bubble-title-text">
-                <span className="whitespace-nowrap">{label}</span>
-                {summary ? (
-                  <span
-                    className="bubble-summary-text"
-                    style={{
-                      opacity: 0.5,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {summary}
-                  </span>
-                ) : null}
+                {labelBold ? <b>{label}</b> : <span>{label}</span>}
+                {params ? <span className="tool-params">{params}</span> : null}
               </span>
-              <ChevronRightIcon
-                className={cn("bubble-toggle-icon", open && "expanded")}
-              />
+              {open ? <ChevronUpIcon className="bubble-toggle-icon" /> : <ChevronDownIcon className="bubble-toggle-icon" />}
             </span>
           </DisclosureButton>
-          <DisclosurePanel className="bubble-collapsible-content">
+          <DisclosurePanel className={cn("bubble-collapsible-content", contentClassName)}>
             {children}
           </DisclosurePanel>
         </>
@@ -189,20 +197,48 @@ function getThinkingContent(message: SessionMessage): string {
   );
 }
 
-function summarizeSkillMessage(message: SessionMessage): string | null {
-  const skillName =
-    getNestedString(message, ["meta", "skill", "name"]) ??
-    parseSkillName(message.content);
-  return skillName ?? summarizePlainText(message.content);
+function parseToolMessage(message: SessionMessage): {
+  ok: boolean;
+  name: string;
+  paramsMd: string | null;
+  displayContent: string;
+  autoExpand: boolean;
+} {
+  const parsed = parseJsonObject(message.content) ?? {};
+  const name = typeof parsed.name === "string" && parsed.name.trim() ? parsed.name : "unknown";
+  const ok = parsed.ok === true;
+  const paramsMd = getNestedString(message, ["meta", "paramsMd"]) ?? inferToolParams(name, parsed);
+  const resultMd = getNestedString(message, ["meta", "resultMd"]);
+  const displayContent =
+    resultMd ??
+    stringifyToolOutput(parsed.output) ??
+    message.content ??
+    "";
+  const metadata = parsed.metadata && typeof parsed.metadata === "object" ? parsed.metadata as Record<string, unknown> : null;
+  const autoExpand = metadata?.kind === "ask_user_question";
+  return { ok, name, paramsMd, displayContent, autoExpand };
 }
 
-function summarizeToolMessage(message: SessionMessage): string | null {
-  const toolName =
-    getNestedString(message, ["meta", "function", "name"]) ??
-    getNestedString(message, ["messageParams", "tool_name"]) ??
-    parseToolName(message.content);
-  const resultSummary = summarizeToolContent(message.content);
-  return [toolName, resultSummary].filter(Boolean).join(" · ") || null;
+function inferToolParams(name: string, parsed: Record<string, unknown>): string | null {
+  const args = getRecord(parsed, "args") ?? getRecord(parsed, "input") ?? getRecord(parsed, "metadata");
+  if (name === "bash") return firstString(args, ["command", "cmd", "script"]);
+  if (name === "read") return firstString(args, ["path", "filePath", "file_path", "target"]);
+  if (name === "edit") return firstString(args, ["path", "filePath", "file_path", "target"]);
+  return firstString(args, ["path", "filePath", "file_path", "command", "query"]);
+}
+
+function getRecord(source: Record<string, unknown>, key: string): Record<string, unknown> | null {
+  const value = source[key];
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function firstString(source: Record<string, unknown> | null, keys: string[]): string | null {
+  if (!source) return null;
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
 }
 
 function parseSkillName(content: string | null): string | null {
@@ -213,35 +249,17 @@ function parseSkillName(content: string | null): string | null {
   return nameLine?.replace(/^\s*name:\s*/u, "").trim() || null;
 }
 
-function parseToolName(content: string | null): string | null {
-  const parsed = parseJsonObject(content);
-  return typeof parsed?.name === "string" ? parsed.name : null;
-}
-
-function summarizeToolContent(content: string | null): string | null {
-  const parsed = parseJsonObject(content);
-  if (!parsed) return summarizePlainText(content);
-  const status =
-    parsed.ok === true ? "ok" : parsed.ok === false ? "failed" : null;
-  const output =
-    typeof parsed.output === "string" ? firstContentLine(parsed.output) : null;
-  const summary = output ? truncate(output, SUMMARY_LIMIT) : status;
-  return summary && summary !== parseToolName(content) ? summary : null;
-}
-
 function summarizePlainText(content: string | null): string | null {
-  const line = firstContentLine(content);
-  return line ? truncate(line, SUMMARY_LIMIT) : null;
+  if (!content) return null;
+  const line = content.split("\n").map((item) => item.trim()).find(Boolean);
+  if (!line) return null;
+  return line.length > SUMMARY_LIMIT ? `${line.slice(0, SUMMARY_LIMIT - 3)}...` : line;
 }
 
-function firstContentLine(content: string | null): string | null {
-  if (!content) return null;
-  return (
-    content
-      .split("\n")
-      .map((line) => line.trim())
-      .find(Boolean) ?? null
-  );
+function stringifyToolOutput(output: unknown): string | null {
+  if (typeof output === "string") return output;
+  if (output === undefined || output === null) return null;
+  return JSON.stringify(output, null, 2);
 }
 
 function parseJsonObject(
@@ -267,9 +285,5 @@ function getNestedString(source: unknown, path: string[]): string | null {
       return null;
     current = (current as Record<string, unknown>)[key];
   }
-  return typeof current === "string" && current.trim() ? current : null;
-}
-
-function truncate(value: string, limit: number): string {
-  return value.length > limit ? `${value.slice(0, limit - 3)}...` : value;
+  return typeof current === "string" && current.trim() ? current.trim() : null;
 }
