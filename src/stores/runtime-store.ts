@@ -35,7 +35,7 @@ export const useRuntimeStore = create<RuntimeState>((set) => ({
   ...initialState,
   setStatus: (status) => set({ status, connected: status === "connected" }),
   setProjectRoot: (projectRoot) => set({ projectRoot }),
-  setLoading: (loading) => set({ loading, llmStreamProgress: loading ? undefined : null }),
+  setLoading: (loading) => set((state) => ({ loading, llmStreamProgress: loading ? state.llmStreamProgress : null })),
   setSessionStatus: (sessionStatus) => set({ sessionStatus }),
   setTokenTelemetry: (tokenTelemetry) => set({ tokenTelemetry }),
   setLlmStreamProgress: (llmStreamProgress) => set({ llmStreamProgress }),
