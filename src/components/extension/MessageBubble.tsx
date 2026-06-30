@@ -112,11 +112,11 @@ function CollapsibleBubble({ title, dotClass, children }: { title: string; dotCl
 }
 
 function isThinkingMessage(message: SessionMessage): boolean {
-  return Boolean(message.meta?.asThinking || getNestedString(message, ["messageParams", "reasoning_content"]));
+  return Boolean(message.meta?.asThinking || getNestedString(message, ["messageParams", "reasoning_content"]) || getNestedString(message, ["messageParams", "reasoningContent"]));
 }
 
 function getThinkingContent(message: SessionMessage): string {
-  return getNestedString(message, ["messageParams", "reasoning_content"]) ?? message.content ?? "";
+  return getNestedString(message, ["messageParams", "reasoning_content"]) ?? getNestedString(message, ["messageParams", "reasoningContent"]) ?? message.content ?? "";
 }
 
 function buildToolTitle(message: SessionMessage): string {
