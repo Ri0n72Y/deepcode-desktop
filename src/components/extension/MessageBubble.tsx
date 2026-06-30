@@ -35,7 +35,6 @@ export default function MessageBubble({
       const thinkingContent = getThinkingContent(message);
       return (
         <CollapsibleBubble
-          contentClassName="collapsed"
           dotClass={cn(shouldConnect && "connect-to-prev")}
           label="Thinking"
           params={summarizePlainText(thinkingContent)}
@@ -52,19 +51,14 @@ export default function MessageBubble({
       getNestedString(message, ["meta", "skill", "name"]) ??
       parseSkillName(message.content) ??
       "Unknown Skill";
-    const skillDescription =
-      getNestedString(message, ["meta", "skill", "description"]) ??
-      message.content ??
-      "";
     return (
       <CollapsibleBubble
-        contentClassName="collapsed"
         dotClass={cn("system-dot", shouldConnect && "connect-to-prev")}
         label="Skills"
         labelBold
         params={skillName}
       >
-        {skillDescription}
+        {message.content ?? ""}
       </CollapsibleBubble>
     );
   }
@@ -72,13 +66,13 @@ export default function MessageBubble({
   const tool = parseToolMessage(message);
   return (
     <CollapsibleBubble
-      contentClassName={tool.autoExpand ? undefined : "collapsed"}
+      defaultOpen={tool.autoExpand}
       dotClass={cn(tool.ok ? "success" : "error", shouldConnect && "connect-to-prev")}
-      label={tool.name}
+      label={capitalizeLabel(tool.name)}
       labelBold
       params={tool.paramsMd}
     >
-      {tool.displayContent}
+      {message.content ?? ""}
     </CollapsibleBubble>
   );
 }
@@ -144,18 +138,18 @@ function CollapsibleBubble({
   params,
   labelBold,
   dotClass,
-  contentClassName,
+  defaultOpen,
   children,
 }: {
   label: string;
   params: string | null;
   labelBold?: boolean;
   dotClass: string;
-  contentClassName?: string;
+  defaultOpen?: boolean;
   children: ReactNode;
 }) {
   return (
-    <Disclosure as="div" className="bubble tool">
+    <Disclosure as="div" className="bubble tool" defaultOpen={defaultOpen}>
       {({ open }) => (
         <>
           <DisclosureButton
@@ -171,7 +165,7 @@ function CollapsibleBubble({
               {open ? <ChevronUpIcon className="bubble-toggle-icon" /> : <ChevronDownIcon className="bubble-toggle-icon" />}
             </span>
           </DisclosureButton>
-          <DisclosurePanel className={cn("bubble-collapsible-content", contentClassName)}>
+          <DisclosurePanel className="bubble-collapsible-content">
             {children}
           </DisclosurePanel>
         </>
@@ -201,22 +195,15 @@ function parseToolMessage(message: SessionMessage): {
   ok: boolean;
   name: string;
   paramsMd: string | null;
-  displayContent: string;
   autoExpand: boolean;
 } {
   const parsed = parseJsonObject(message.content) ?? {};
   const name = typeof parsed.name === "string" && parsed.name.trim() ? parsed.name : "unknown";
   const ok = parsed.ok === true;
   const paramsMd = getNestedString(message, ["meta", "paramsMd"]) ?? inferToolParams(name, parsed);
-  const resultMd = getNestedString(message, ["meta", "resultMd"]);
-  const displayContent =
-    resultMd ??
-    stringifyToolOutput(parsed.output) ??
-    message.content ??
-    "";
   const metadata = parsed.metadata && typeof parsed.metadata === "object" ? parsed.metadata as Record<string, unknown> : null;
   const autoExpand = metadata?.kind === "ask_user_question";
-  return { ok, name, paramsMd, displayContent, autoExpand };
+  return { ok, name, paramsMd, autoExpand };
 }
 
 function inferToolParams(name: string, parsed: Record<string, unknown>): string | null {
@@ -256,12 +243,6 @@ function summarizePlainText(content: string | null): string | null {
   return line.length > SUMMARY_LIMIT ? `${line.slice(0, SUMMARY_LIMIT - 3)}...` : line;
 }
 
-function stringifyToolOutput(output: unknown): string | null {
-  if (typeof output === "string") return output;
-  if (output === undefined || output === null) return null;
-  return JSON.stringify(output, null, 2);
-}
-
 function parseJsonObject(
   content: string | null,
 ): Record<string, unknown> | null {
@@ -286,4 +267,9 @@ function getNestedString(source: unknown, path: string[]): string | null {
     current = (current as Record<string, unknown>)[key];
   }
   return typeof current === "string" && current.trim() ? current.trim() : null;
+}
+
+function capitalizeLabel(value: string): string {
+  if (!value) return value;
+  return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`;
 }
