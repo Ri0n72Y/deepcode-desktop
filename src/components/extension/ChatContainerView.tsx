@@ -36,7 +36,7 @@ export default function ChatContainerView() {
   useEffect(() => {
     setRenderedCount(Math.min(messages.length, INITIAL_RENDERED_MESSAGE_LIMIT));
     setIsAtBottom(true);
-  }, [activeSessionId, messages.length]);
+  }, [activeSessionId]);
 
   useEffect(() => {
     setRenderedCount((current) => Math.min(messages.length, Math.max(current, Math.min(messages.length, INITIAL_RENDERED_MESSAGE_LIMIT))));
