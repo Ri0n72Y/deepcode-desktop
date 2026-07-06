@@ -19,11 +19,12 @@ describe("MessageBubble", () => {
   });
 
   it("keeps tool details collapsed by default", () => {
-    render(<MessageBubble message={{ id: "m2", role: "tool", content: "tool output" }} />);
+    const content = JSON.stringify({ ok: true, name: "bash", output: "tool output" });
+    render(<MessageBubble message={{ id: "m2", role: "tool", content }} />);
 
     expect(screen.queryByText("tool output")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("Toggle tool details"));
-    expect(screen.getByText("tool output")).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Toggle Bash details"));
+    expect(screen.getByText(/tool output/)).toBeInTheDocument();
   });
 
   it("collapses long user prompts", () => {
@@ -32,7 +33,7 @@ describe("MessageBubble", () => {
     render(<MessageBubble message={{ id: "m3", role: "user", content }} />);
 
     expect(screen.queryByText("line 22")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText("展开"));
+    fireEvent.click(screen.getByText("Expand"));
     expect(screen.getByText(/line 22/)).toBeInTheDocument();
   });
 });
